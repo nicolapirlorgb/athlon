@@ -669,6 +669,18 @@ function migrer() {
     ajoute(pullB, "Oiseau haltères sur banc incliné", "Épaules", "halteres", 8, 12, 20, 3);
     etat.v = 5; saveEtat(true);
   }
+  if ((etat.v || 1) < 6) {
+    /* Bench : priorité muscle, avec une série lourde pour la force */
+    const j = etat.jours.find(z => z.nom.startsWith("Push A"));
+    const lourd = j && j.exos.map(id => etat.exos[id]).find(x => x && x.nom === "Développé couché barre");
+    if (lourd && !j.exos.some(id => etat.exos[id] && etat.exos[id].nom === "Développé couché barre · volume")) {
+      lourd.nom = "Développé couché barre · série lourde"; lourd.series = 1; lourd.repsMin = 3; lourd.repsMax = 5;
+      lourd.repsCible = Math.min(5, Math.max(3, lourd.repsCible || 3)); lourd.repos = Math.max(lourd.repos || 240, 240);
+      const v = { id: uid(), nom: "Développé couché barre · volume", groupe: "Pectoraux", type: "barre", charge: arr((lourd.charge || 100) * 0.78, "barre"), repsMin: 8, repsMax: 10, series: 3, inc: 2.5, repos: 180, repsCible: 8, echecs: 0, calib: true };
+      etat.exos[v.id] = v; j.exos.splice(j.exos.indexOf(lourd.id) + 1, 0, v.id);
+    }
+    etat.v = 6; saveEtat(true);
+  }
   if (!etat.nutri) { normaliser(etat); saveEtat(true); }
 }
 /* Repos du moment : base de l'exercice, ajustée à la série et à la forme */
