@@ -765,6 +765,26 @@ function migrer() {
     Object.values(etat.exos).forEach(x => { if (iso.test(x.nom) && x.groupe !== "Abdos" && x.groupe !== "Cou") { x.court = true; x.repos = 90; x.reposRef = 90; } });
     etat.v = 9; saveEtat(true);
   }
+  if ((etat.v || 1) < 10) {
+    /* Priorités : biceps, triceps, mollets, trapèzes (toujours 5 exercices + 1 focus) */
+    const PLAN = {
+      "Pull A": ["Rowing barre", "Shrug barre", "Oiseau haltères buste penché", "Curl barre EZ", "Curl marteau haltères"],
+      "Push B": ["Développé incliné haltères", "Poulie vis-à-vis haut vers bas", "Élévation latérale unilatérale poulie", "Barre au front EZ", "Extension triceps au-dessus de la tête (poulie)"],
+      "Pull B": ["Tractions lestées", "Tirage vertical prise large", "Shrug haltères", "Oiseau haltères sur banc incliné", "Curl incliné haltères"]
+    };
+    const tous = Object.values(etat.exos);
+    etat.jours.forEach(j => {
+      const pre = Object.keys(PLAN).find(k => j.nom.startsWith(k)); if (!pre) return;
+      const trouve = n => (j.exos.map(id => etat.exos[id]).find(x => x && x.nom === n) || tous.find(x => x.nom === n) || {}).id;
+      const ids = PLAN[pre].map(trouve).filter(Boolean); if (ids.length < 4) return;
+      const f = j.focus && j.exos.includes(j.focus) ? [j.focus] : [];
+      j.exos = ids.filter(id => !f.includes(id)).concat(f);
+    });
+    const serie = (n, k) => { const x = tous.find(z => z.nom === n); if (x) x.series = Math.max(k, x.series); };
+    serie("Curl barre EZ", 4); serie("Curl incliné haltères", 4); serie("Extension triceps poulie corde", 4); serie("Extension triceps au-dessus de la tête (poulie)", 4); serie("Shrug barre", 4); serie("Shrug haltères", 3);
+    tous.filter(z => /^Shrug/.test(z.nom)).forEach(z => { z.court = true; z.repos = 90; z.reposRef = 90; });
+    etat.v = 10; saveEtat(true);
+  }
   if (!etat.nutri) { normaliser(etat); saveEtat(true); }
 }
 /* Repos du moment : base de l'exercice, ajustée à la série et à la forme */
@@ -2294,7 +2314,7 @@ V.chatBusy = false; V.chatDraft = ""; V.chatErr = ""; V.apiEdit = false; V.confi
 const COACH_SYS = `Tu es le coach personnel de l'athlète qui utilise l'appli ATHLON : préparateur physique expert, formé en physiologie de l'exercice, anatomie fonctionnelle, biomécanique et nutrition sportive, qui s'appuie sur la recherche actuelle.
 Repères : hypertrophie portée par la tension mécanique et le travail proche de l'échec (0 à 3 reps en réserve), environ 10 à 20 séries efficaces par muscle et par semaine, fréquence d'au moins 2 fois par muscle, intérêt des positions étirées sous charge ; force portée par la spécificité, l'intensité (plus de 80 % du max) et la technique ; récupération (sommeil, stress) ; pour la prise de muscle, léger surplus calorique et environ 1,6 à 2,2 g de protéines par kg.
 Tu raisonnes en anatomie : gastrocnémiens genou tendu et soléaire genou fléchi ; chef long du triceps bras au-dessus de la tête ; chef long du biceps étiré en curl incliné ; faisceau claviculaire des pecs en incliné ; trapèzes supérieurs aux shrugs ; muscles du cou en flexion, extension et inclinaison.
-Profil : 22 ans, 1,83 m, 5 ans de musculation, développé couché à 125 kg qu'il veut faire monter. Poids habituel 85-86 kg, récemment plus léger car il a moins bien mangé. Push/Pull/Jambes en rotation (2 push, 2 pull, 1 jambes), 4 à 5 séances par semaine sans jours fixes, de 1 h à 1 h 45 échauffement compris, repos de 2 à 4 min sur les polyarticulaires et 90 s sur l'isolation des petits muscles. Tout changement de programme doit garder chaque séance dans cette durée. Priorités : mollets et bras, garder les pecs, force au bench. Pas de machine à mollets ; a un harnais pour le cou et une Smith machine. Abdos et cou sont un bloc optionnel. Aucune blessure déclarée.
+Profil : 22 ans, 1,83 m, 5 ans de musculation, développé couché à 125 kg qu'il veut faire monter. Poids habituel 85-86 kg, récemment plus léger car il a moins bien mangé. Push/Pull/Jambes en rotation (2 push, 2 pull, 1 jambes), 4 à 5 séances par semaine sans jours fixes, de 1 h à 1 h 45 échauffement compris, repos de 2 à 4 min sur les polyarticulaires et 90 s sur l'isolation des petits muscles. Tout changement de programme doit garder chaque séance dans cette durée. Priorités : biceps, triceps, mollets et trapèzes, garder les pecs, force au bench. Pas de machine à mollets ; a un harnais pour le cou et une Smith machine. Abdos et cou sont un bloc optionnel. Aucune blessure déclarée.
 Style : français, tutoiement, direct, concret et bref (souvent 80 à 200 mots), chaque conseil justifié en une phrase par le mécanisme. Texte simple sans Markdown : pas de #, pas de **, listes avec « – ». Pas de conseil médical : en cas de douleur, conseille de consulter un professionnel de santé.
 Si tu proposes des changements précis de son programme, termine ta réponse par un bloc de code json (et rien après) de cette forme, que l'appli transformera en bouton Appliquer :
 \`\`\`json
