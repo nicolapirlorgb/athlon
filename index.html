@@ -447,6 +447,9 @@ button.f-dot:disabled{cursor:default}
 .f-opts button:last-child{border-bottom:0}
 .f-opts button span{color:var(--muted);font-size:12.5px}
 .f-opts button.dang{color:var(--bad)}
+.fdel{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)}
+.fdel .keep{display:flex;align-items:center;gap:10px;font-size:13.5px}
+.fdel .keep input{width:20px;height:20px;accent-color:var(--accent)}
 .swap{background:var(--surface);border-radius:20px;padding:18px 18px 10px;margin-top:14px}
 .swap .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .swap .alt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:13px 0;border-bottom:1px solid var(--line);text-align:left;font-size:14.5px}
@@ -1176,6 +1179,10 @@ function vueFocus() {
   ${plus("fopt", "Options", "Fermer", "c")}
   ${vu("fopt") ? `<div class="f-opts">
     <button data-act="f-swap">Remplacer l'exercice<span>machine prise, autre variante</span></button>
+    ${draft.exos.length > 1 ? (V.fdel ? `<div class="fdel"><div style="font-size:14px">Retirer <b>${esc(x.nom)}</b> de la séance ?${d.series.some(z => z.fait) ? `<div class="muted" style="font-size:12px;margin-top:4px">Les séries déjà faites restent enregistrées.</div>` : ""}</div>
+      <label class="keep" for="fdelProg"><input id="fdelProg" type="checkbox"> Aussi de mon programme</label>
+      <div class="row"><button class="btn sm danger" data-act="f-del-ok">Retirer</button><button class="btn sm" data-act="f-del-no">Annuler</button></div></div>`
+      : `<button data-act="f-del">Retirer l'exercice<span>pas envie aujourd'hui</span></button>`) : ""}
     <button data-det="fmeta">Infos de l'exercice<span>${vu("fmeta") ? "affichées" : "masquées"}</span></button>
     ${x.type === "barre" ? `<button data-det="disques">Disques à charger<span>${vu("disques") ? "affichés" : "masqués"}</span></button>` : ""}
     ${si >= 0 ? `<button data-addset="${ei}">Ajouter une série<span>${d.series.length} → ${d.series.length + 1}</span></button>` : ""}
@@ -2151,6 +2158,23 @@ document.addEventListener("click", ev => {
   }
 });
 document.addEventListener("change", ev => { const k = ev.target.dataset && ev.target.dataset.cdv; if (k) { const v = parseFloat(String(ev.target.value).replace(",", ".")); if (!isNaN(v)) V.cd[k] = Math.max(0, v); render(); } });
+
+
+/* ---------- retirer un exercice de la séance ---------- */
+function retirerExo(ei, duProgramme) {
+  const d = draft.exos[ei]; if (!d || draft.exos.length < 2) return;
+  if (duProgramme) { const j = etat.jours.find(z => z.id === draft.jourId) || (etat.extras || []).find(z => z.id === draft.jourId); if (j) { j.exos = j.exos.filter(id => id !== d.exoId); saveEtat(true); } }
+  if (d.series.some(z => z.fait)) { d.series = d.series.filter(z => z.fait); const s2 = prochainExo(ei); if (s2 >= 0) draft.cur = s2; }
+  else { draft.exos.splice(ei, 1); draft.cur = Math.min(ei, draft.exos.length - 1); const cur = draft.exos[draft.cur]; if (cur && !cur.series.some(z => !z.fait)) { const s2 = prochainExo(draft.cur); if (s2 >= 0) draft.cur = s2; } }
+  stopRepos(); saveDraft();
+}
+document.addEventListener("click", ev => {
+  const t = ev.target.closest("button"); if (!t || !draft) return;
+  const a = t.dataset.act;
+  if (a === "f-del") { V.fdel = true; render(); return; }
+  if (a === "f-del-no") { V.fdel = false; render(); return; }
+  if (a === "f-del-ok") { const c = $("#fdelProg"); retirerExo(draft.cur, !!(c && c.checked)); V.fdel = false; V.det.fopt = false; ls.set(K_DET, V.det); render(); window.scrollTo(0, 0); }
+});
 
 /* ---------- coach ---------- */
 function contexteCoach() {
