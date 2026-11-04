@@ -739,6 +739,27 @@ function migrer() {
     etat.jours.forEach(j => { j.exos = j.exos.filter(id => { const x = etat.exos[id]; return x && !x.opt && x.groupe !== "Abdos" && x.groupe !== "Cou"; }); });
     etat.v = 7; saveEtat(true);
   }
+  if ((etat.v || 1) < 8) {
+    /* 5 exercices + 1 exercice focus par séance */
+    const PLAN = {
+      "Push A": [["Développé couché barre · série lourde", "Développé couché barre · volume", "Développé incliné Smith", "Développé militaire debout barre", "Élévation latérale unilatérale poulie", "Extension triceps poulie corde"], "Mollets debout au Smith"],
+      "Pull A": [["Rowing barre", "Tirage horizontal prise serrée", "Oiseau haltères buste penché", "Curl barre EZ", "Curl marteau haltères"], "Mollets assis haltère sur les genoux"],
+      "Jambes": [["Hip thrust", "Soulevé de terre roumain", "Leg press", "Leg curl (machine ischios)", "Machine à adducteurs"], "Mollets à la presse"],
+      "Push B": [["Développé incliné haltères", "Chest press", "Poulie vis-à-vis haut vers bas", "Élévation latérale unilatérale poulie", "Extension triceps au-dessus de la tête (poulie)"], "Mollets unilatéral haltère sur marche"],
+      "Pull B": [["Tractions lestées", "Tirage vertical prise large", "Rowing haltère unilatéral", "Oiseau haltères sur banc incliné", "Curl incliné haltères"], "Élévations latérales haltères"]
+    };
+    const tous = Object.values(etat.exos);
+    etat.jours.forEach(j => {
+      const pre = Object.keys(PLAN).find(k => j.nom.startsWith(k)); if (!pre) return;
+      const [noms, focus] = PLAN[pre];
+      const trouve = n => (j.exos.map(id => etat.exos[id]).find(x => x && x.nom === n) || tous.find(x => x.nom === n) || {}).id;
+      const ids = noms.map(trouve).filter(Boolean), fid = trouve(focus);
+      if (ids.length < 3) return;
+      j.exos = fid ? ids.filter(id => id !== fid).concat([fid]) : ids;
+      if (fid) j.focus = fid;
+    });
+    etat.v = 8; saveEtat(true);
+  }
   if (!etat.nutri) { normaliser(etat); saveEtat(true); }
 }
 /* Repos du moment : base de l'exercice, ajustée à la série et à la forme */
@@ -1044,6 +1065,11 @@ function bandeauExemple() {
   return `<div class="note"><b>${n} charge${n > 1 ? "s" : ""} à calibrer.</b> Les charges sont estimées depuis ton bench à 125 kg. À ta première séance, règle la charge avec − / + sur ce que tu utilises vraiment : l'appli la retient comme base, sans pénalité.</div>`;
 }
 
+function nbExos(j) {
+  const base = id => (etat.exos[id]?.nom || "").split(" · ")[0];
+  return new Set(j.exos.filter(id => etat.exos[id] && !etat.exos[id].opt && id !== j.focus).map(base)).size;
+}
+function texteExos(j) { const f = j.focus && j.exos.includes(j.focus) && etat.exos[j.focus]; return `${nbExos(j)} exercices${f ? " + focus " + f.groupe.toLowerCase() : ""}`; }
 function vueAvantSeance() {
   if (!etat.jours.length) return `<div class="empty">Aucune journée dans ton programme.<br><button class="link" data-tab="programme">Créer un programme</button></div>`;
   if (V.jour == null || !etat.jours[V.jour]) V.jour = Math.min(etat.prochain, etat.jours.length - 1);
@@ -1055,10 +1081,10 @@ function vueAvantSeance() {
   const li = (id, r) => {
     const x = etat.exos[id], p = planExo(x, x.opt ? "normale" : f.niveau, r);
     const cible = `${p.series} × ${p.cible}${x.type === "poids_corps" && !p.charge ? "" : " · " + (x.type === "poids_corps" ? "+" : "") + nf(p.charge) + " kg"}`;
-    return `<li><span class="ix">${String(r + 1).padStart(2, "0")}</span><span class="n">${esc(x.nom)}${vu("plan") ? `<small class="muted" style="display:block;font-size:12px;margin-top:3px">${esc(x.groupe)} · ${x.repsMin}–${x.repsMax} reps${x.calib ? " · à calibrer" : ""}${p.note ? " · " + p.note : ""}</small>` : ""}</span><span class="t num">${cible}</span></li>`;
+    return `<li><span class="ix">${id === j.focus ? "★" : String(r + 1).padStart(2, "0")}</span><span class="n">${esc(x.nom)}${id === j.focus ? '<span class="tag" style="background:var(--accent-soft);color:var(--accent-hi)">focus</span>' : ""}${vu("plan") ? `<small class="muted" style="display:block;font-size:12px;margin-top:3px">${esc(x.groupe)} · ${x.repsMin}–${x.repsMax} reps${x.calib ? " · à calibrer" : ""}${p.note ? " · " + p.note : ""}</small>` : ""}</span><span class="t num">${cible}</span></li>`;
   };
   return `
-  <div style="margin-top:22px">${visuel(j.nom, "Séance " + (V.jour + 1) + " sur " + etat.jours.length, `≈ ${fmtMin(du.main)}<small>${main.length} exercices</small>`)}</div>
+  <div style="margin-top:22px">${visuel(j.nom, "Séance " + (V.jour + 1) + " sur " + etat.jours.length, `≈ ${fmtMin(du.main)}<small>${texteExos(j)}</small>`)}</div>
 
   <div style="margin-top:16px"><button class="btn primary big" data-act="start">Démarrer</button></div>
   <div class="label" style="text-align:center;margin:26px 0 10px">Forme du jour</div>
@@ -1073,7 +1099,7 @@ function vueAvantSeance() {
     ${jauge(f, msg)}
   </div>` : ""}
 
-  <div style="margin-top:28px"><button class="acc" data-det="deroule" aria-expanded="${vu("deroule")}"><span class="t">Le déroulé</span><span class="m">${main.length} exercices${opt.length ? ` · ${opt.length} optionnels` : ""}</span><span class="ch">${CHEV}</span></button>
+  <div style="margin-top:28px"><button class="acc" data-det="deroule" aria-expanded="${vu("deroule")}"><span class="t">Le déroulé</span><span class="m">${texteExos(j)}</span><span class="ch">${CHEV}</span></button>
   ${vu("deroule") ? `<div class="acc-body">
     <div class="plan" style="border-top:0"><ul>${main.map(li).join("")}</ul></div>
     ${opt.length ? `<div class="opt-h"><h3>Optionnel</h3><span>abdos & cou</span></div><div class="plan"><ul>${opt.map((id, r) => li(id, main.length + r)).join("")}</ul></div>` : ""}
@@ -1154,7 +1180,7 @@ function vueFocus() {
   <div class="f-prog">${prog}</div>
   <div class="f-hero">
     <div class="f-ghost" aria-hidden="true">${num}</div>
-    <div class="label">${x.opt ? "Optionnel" : `${posMain + 1} / ${n}`} · ${esc(x.groupe)}${x.calib ? ' · <span class="cal-tag">charge à régler</span>' : ""}</div>
+    <div class="label">${x.opt ? "Optionnel" : d.exoId === draft.focus ? '<span style="color:var(--accent-hi)">Focus</span>' : `${posMain + 1} / ${n}`} · ${esc(x.groupe)}${x.calib ? ' · <span class="cal-tag">charge à régler</span>' : ""}</div>
     <h1 class="f-name">${esc(x.nom)}</h1>
     ${vu("fmeta") ? `<div class="f-meta">Fourchette ${x.repsMin}–${x.repsMax} reps · repos ${Math.round(x.repos / 60 * 10) / 10} min${x.calib ? " · charge estimée : mets celle que tu utilises vraiment, elle servira de base" : ""}</div>` : ""}
   </div>
@@ -1254,7 +1280,7 @@ function carteExo(d, ei) {
 function vueProgramme() {
   const ro = vu("reorg");
   const ligneExo = (id, xi, ji) => { const x = etat.exos[id]; return `<li>
-        <button class="n" data-edit="${id}" data-j="${ji}">${esc(x.nom)}${x.opt ? '<span class="tag" style="background:var(--sunk);color:var(--muted)">optionnel</span>' : ""}<small class="num">${x.series} × ${x.repsMin}–${x.repsMax} · ${x.type === "poids_corps" ? (x.charge ? "+" + nf(x.charge) + " kg" : "PDC") : nf(x.charge) + " kg"}</small></button>
+        <button class="n" data-edit="${id}" data-j="${ji}">${esc(x.nom)}${etat.jours[ji] && etat.jours[ji].focus === id ? '<span class="tag" style="background:var(--accent-soft);color:var(--accent-hi)">focus</span>' : ""}${x.opt ? '<span class="tag" style="background:var(--sunk);color:var(--muted)">optionnel</span>' : ""}<small class="num">${x.series} × ${x.repsMin}–${x.repsMax} · ${x.type === "poids_corps" ? (x.charge ? "+" + nf(x.charge) + " kg" : "PDC") : nf(x.charge) + " kg"}</small></button>
         ${ro ? `<span class="ctr"><button class="icn" data-xmove="${ji}-${xi}" data-d="-1" aria-label="Monter">${I.up}</button><button class="icn" data-xmove="${ji}-${xi}" data-d="1" aria-label="Descendre">${I.down}</button></span>` : "<span></span>"}</li>`; };
   return `
   <div class="row" style="justify-content:space-between;align-items:flex-end"><h2 class="sec">Séances</h2>${plus("reorg", "Modifier", "Terminé")}</div>
@@ -1268,7 +1294,7 @@ function vueProgramme() {
       <ul class="pl">${j.exos.map((id, xi) => ligneExo(id, xi, ji)).join("")}</ul>
       <div class="row" style="margin-top:10px"><button class="btn sm" data-addexo="${ji}">+ Exercice</button></div>
     </section>`;
-    return `<button class="acc" data-det="${k}" aria-expanded="${open}"><span class="t">${esc(parts[0].trim())}${parts[1] ? ` <em>${esc(parts[1].trim())}</em>` : ""}${ji === etat.prochain ? '<span class="pv">prévue</span>' : ""}</span><span class="m">${nMain} exercices · ≈ ${fmtMin(du.main)}</span><span class="ch">${CHEV}</span></button>
+    return `<button class="acc" data-det="${k}" aria-expanded="${open}"><span class="t">${esc(parts[0].trim())}${parts[1] ? ` <em>${esc(parts[1].trim())}</em>` : ""}${ji === etat.prochain ? '<span class="pv">prévue</span>' : ""}</span><span class="m">${texteExos(j)} · ≈ ${fmtMin(du.main)}</span><span class="ch">${CHEV}</span></button>
     ${open ? `<div class="acc-body"><ul class="pl" style="margin:0">${j.exos.map((id, xi) => ligneExo(id, xi, ji)).join("")}</ul>
       <div class="row" style="margin-top:12px">${ji === etat.prochain ? "" : `<button class="btn sm" data-faire="${ji}">Faire aujourd'hui</button>`}</div></div>` : ""}`;
   }).join("")}</div>
@@ -1612,7 +1638,7 @@ function demarrer() {
     poids: parseFloat(String(V.poidsJour).replace(",", ".")) || null,
     exos: j.exos.map(id => { const x = etat.exos[id], r = j.exos.filter(z => !etat.exos[z].opt).indexOf(id), p = planExo(x, x.opt ? "normale" : f.niveau, r); return { exoId: id, charge: p.charge, prevue: p.charge, cible: p.cible, ressenti: "", series: Array.from({ length: p.series }, () => ({ reps: "", fait: false })) }; })
   };
-  draft.cur = 0; draft.vue = "focus";
+  draft.cur = 0; draft.vue = "focus"; draft.focus = j.focus || null;
   saveDraft(); garderEcran(); render(); window.scrollTo(0, 0);
 }
 function enregistrer() {
@@ -2005,7 +2031,7 @@ function remplacerExo(ei, cible) {
   const neuf = { exoId: x2.id, charge: p.charge, prevue: p.charge, cible: p.cible, ressenti: "", series: Array.from({ length: faites ? reste : d.series.length }, () => ({ reps: "", fait: false })) };
   if (faites) { d.series = d.series.filter(z => z.fait); draft.exos.splice(ei + 1, 0, neuf); draft.cur = ei + 1; }
   else draft.exos[ei] = neuf;
-  if (V.swapKeep) { const j = etat.jours.find(z => z.id === draft.jourId); const k = j ? j.exos.indexOf(ancien.id) : -1; if (k >= 0 && !j.exos.includes(x2.id)) j.exos[k] = x2.id; }
+  if (V.swapKeep) { const j = etat.jours.find(z => z.id === draft.jourId); const k = j ? j.exos.indexOf(ancien.id) : -1; if (k >= 0 && !j.exos.includes(x2.id)) { j.exos[k] = x2.id; if (j.focus === ancien.id) j.focus = x2.id; } }
   saveEtat(true); saveDraft(); stopRepos();
   V.swap = false; V.swapKeep = false; V.det.fopt = false; ls.set(K_DET, V.det);
 }
