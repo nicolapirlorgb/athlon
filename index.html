@@ -517,6 +517,28 @@ h2.sec{font-family:var(--f-tech);font-size:17px;letter-spacing:.06em;text-transf
 .rc-list b{font-family:var(--f-serif);font-weight:600;white-space:nowrap}
 .rc-list .pr{color:var(--accent-hi)}
 @media (max-width:360px){ .rc-grid{grid-template-columns:repeat(2,1fr)} }
+
+/* Historique */
+.hw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.hw div{background:var(--surface);border-radius:14px;padding:12px 8px;text-align:center}
+.hw b{display:block;font-family:var(--f-serif);font-weight:600;font-size:22px}
+.hw span{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hm{font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.hrow{width:100%;display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);text-align:left}
+.hrow .dt{text-align:center;line-height:1}
+.hrow .dt b{display:block;font-family:var(--f-serif);font-weight:600;font-size:22px}
+.hrow .dt span{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hrow .nm{min-width:0}
+.hrow .nm b{display:block;font-family:var(--f-tech);font-weight:400;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .nm span{font-size:12px;color:var(--muted)}
+.hrow .tn{font-family:var(--f-serif);font-weight:600;font-size:17px;white-space:nowrap;text-align:right}
+.hrow .tn small{display:block;font-family:var(--f-body);font-weight:500;font-size:10.5px;color:var(--muted)}
+.hd-ex{padding:12px 0;border-bottom:1px solid var(--line)}
+.hd-ex:last-child{border-bottom:0}
+.hd-ex .h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:14px}
+.hd-ex .h b{font-weight:600}
+.hd-sets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hd-sets span{background:var(--raise);border-radius:8px;padding:5px 9px;font-family:var(--f-serif);font-weight:600;font-size:13px}
 /* Appli autonome : zones sûres de l'iPhone, pas de rebond ni de zoom */
 html{-webkit-text-size-adjust:100%}
 body{margin:0;overscroll-behavior-y:none}
@@ -1444,6 +1466,8 @@ function vueEvolution() {
   <div style="margin-top:12px"></div>
   <h2 class="sec">Tes charges</h2>
   ${charges.replace('<h2 class="sec">Force estimée</h2>', "")}
+  <h2 class="sec">Historique</h2>
+  ${vueHistorique()}
   <div style="margin-top:40px">${blocCoach()}</div>`;
 }
 function vueCoach() {
@@ -1494,7 +1518,7 @@ function vueProfil() {
   </div>
 
   <h2 class="sec">Historique</h2>
-  <div class="panel">${seances.length ? `<table class="tbl num"><tbody>${seances.slice(0, 15).map(s => `<tr><td>${dCourt(s.date)}</td><td>${esc(s.jour)}</td><td>${(s.exos || []).reduce((a, e) => a + (e.reps || []).filter(r => r > 0).length, 0)} séries</td></tr>`).join("")}</tbody></table>` : `<p class="muted" style="margin:0">Aucune séance enregistrée pour l'instant.</p>`}</div>
+  <div class="panel"><button class="link" data-tab="evolution">Voir toutes tes séances dans Évolution</button></div>
 
   <h2 class="sec">Sauvegarde</h2>
   <div class="panel stack">
@@ -2231,6 +2255,58 @@ document.addEventListener("click", ev => {
   if (a === "f-del") { V.fdel = true; render(); return; }
   if (a === "f-del-no") { V.fdel = false; render(); return; }
   if (a === "f-del-ok") { const c = $("#fdelProg"); retirerExo(draft.cur, !!(c && c.checked)); V.fdel = false; V.det.fopt = false; ls.set(K_DET, V.det); render(); window.scrollTo(0, 0); }
+});
+
+
+/* ---------- historique des séances ---------- */
+const RESS = { facile: "Facile", ok: "Correct", dur: "Dur", epuise: "Épuisé" };
+const fmtT = t => t >= 1000 ? nf(Math.round(t / 100) / 10) + " t" : r0(t) + " kg";
+function debutSemaine(d) { const x = new Date(d); const k = (x.getDay() + 6) % 7; x.setDate(x.getDate() - k); return ymd(x); }
+function vueHistorique() {
+  if (!seances.length) return `<p class="muted" style="margin:0">Tes séances apparaîtront ici dès la première enregistrée.</p>`;
+  const lun = debutSemaine(new Date()), sem = seances.filter(s => s.date >= lun);
+  const muscu = sem.filter(s => !s.court && !s.cardio);
+  const tSem = sem.reduce((a, s) => a + (s.tonnage ?? tonnageSeance(s)), 0), mSem = sem.reduce((a, s) => a + (s.duree || 0), 0);
+  const liste = seances.slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)), max = vu("histoTout") ? liste.length : 12;
+  let mois = "", html = "";
+  liste.slice(0, max).forEach(s => {
+    const d = parseD(s.date), m = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    if (m !== mois) { mois = m; html += `<div class="hm">${m}</div>`; }
+    const nS = (s.exos || []).reduce((a, e) => a + (e.reps || []).length, 0);
+    const meta = s.cardio ? `${s.duree} min · ${s.kcal} kcal` : `${fmtMin(s.duree || 0)} · ${nS} séries${s.ressentiFin ? " · " + RESS[s.ressentiFin].toLowerCase() : ""}`;
+    const droite = s.cardio ? `${s.kcal}<small>kcal</small>` : `${fmtT(s.tonnage ?? tonnageSeance(s))}<small>soulevés</small>`;
+    html += `<button class="hrow" data-histo="${s.id}"><span class="dt"><b class="num">${d.getDate()}</b><span>${d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</span></span><span class="nm"><b>${esc(s.jour)}</b><span>${meta}</span></span><span class="tn num">${droite}</span></button>`;
+  });
+  return `<div class="label" style="margin-bottom:8px">Cette semaine</div>
+  <div class="hw"><div><b class="num">${muscu.length}</b><span>séances</span></div><div><b class="num">${fmtT(tSem)}</b><span>soulevés</span></div><div><b class="num">${fmtMin(mSem)}</b><span>de sport</span></div></div>
+  ${html}
+  ${liste.length > 12 ? plus("histoTout", `Voir les ${liste.length} séances`, "Voir moins") : ""}`;
+}
+function ouvrirSeance(id) {
+  const s = seances.find(z => z.id === id); if (!s) return;
+  const d = parseD(s.date), ex = (s.exos || []).filter(e => (e.reps || []).length);
+  const lbl = { up: "Charge ↑", reps: "Reps ↑", hold: "On garde", down: "Décharge", neutre: "Allégé", calib: "Calibré" };
+  const corps = s.cardio ? `<div class="rc-grid" style="grid-template-columns:repeat(3,1fr)"><div><b class="num">${s.duree}</b><span>min</span></div><div><b class="num">${s.kcal}</b><span>kcal</span></div>${s.cardio.type.startsWith("tapis") ? `<div><b class="num">${nf(Math.round(s.cardio.vitesse * s.cardio.duree / 60 * 10) / 10)}</b><span>km</span></div>` : `<div><b>${{ legere: "Légère", moderee: "Modérée", soutenue: "Soutenue" }[s.cardio.intensite] || ""}</b><span>intensité</span></div>`}</div>`
+    : `<div class="rc-grid"><div><b class="num">${fmtT(s.tonnage ?? tonnageSeance(s))}</b><span>soulevés</span></div><div><b class="num">${s.duree || 0}</b><span>min</span></div><div><b class="num">${ex.reduce((a, e) => a + e.reps.length, 0)}</b><span>séries</span></div><div><b>${s.ressentiFin ? RESS[s.ressentiFin] : "—"}</b><span>ressenti</span></div></div>
+    <div style="margin-top:8px">${ex.map(e => { const kgs = e.kgs || []; return `<div class="hd-ex"><div class="h"><b>${esc(e.nom)}</b>${lbl[e.verdict] ? `<span class="b ${e.verdict}" style="font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;padding:3px 6px">${lbl[e.verdict]}</span>` : ""}</div>
+      <div class="hd-sets">${e.reps.map((r, i) => { const kg = kgs[i] ?? e.charge; return `<span class="num">${r} × ${e.type === "poids_corps" ? (kg ? "+" + nf(kg) : "PDC") : nf(kg)}${e.type === "poids_corps" && !kg ? "" : " kg"}</span>`; }).join("")}</div></div>`; }).join("") || `<p class="muted">Aucune série enregistrée.</p>`}</div>`;
+  $("#sheet").innerHTML = `<div class="sheet-bg" data-close><div class="sheet">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="label">${d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div><h3 style="margin-top:6px">${esc(s.jour)}</h3></div><button class="icn" data-close aria-label="Fermer">${I.x}</button></div>
+    ${corps}
+    ${V.delSeance === id ? `<div class="confirm" style="justify-content:center"><span>Supprimer cette séance ? Tes charges actuelles ne changent pas.</span><button class="btn sm danger" data-histodel="${id}">Supprimer</button><button class="btn sm" data-histodelno="${id}">Annuler</button></div>` : `<button class="more c" data-histodelask="${id}">Supprimer cette séance</button>`}
+  </div></div>`;
+}
+function supprimerSeance(id) {
+  seances = seances.filter(z => z.id !== id); ls.set(K_SEANCES, seances);
+  if (mode === "db" && etatRef) queue(() => etatRef.collection("seances").doc(id).delete());
+}
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  const ds = b.dataset;
+  if (ds.histo) { V.delSeance = null; ouvrirSeance(ds.histo); return; }
+  if (ds.histodelask) { V.delSeance = ds.histodelask; ouvrirSeance(ds.histodelask); return; }
+  if (ds.histodelno) { V.delSeance = null; ouvrirSeance(ds.histodelno); return; }
+  if (ds.histodel) { supprimerSeance(ds.histodel); V.delSeance = null; fermerSheet(); render(); return; }
 });
 
 /* ---------- coach ---------- */
