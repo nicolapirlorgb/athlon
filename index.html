@@ -436,6 +436,14 @@ h2.sec .ey{display:block;font-family:var(--f-body);font-size:10.5px;font-weight:
 .f-opts button:last-child{border-bottom:0}
 .f-opts button span{color:var(--muted);font-size:12.5px}
 .f-opts button.dang{color:var(--bad)}
+.swap{background:var(--surface);border-radius:20px;padding:18px 18px 10px;margin-top:14px}
+.swap .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.swap .alt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:13px 0;border-bottom:1px solid var(--line);text-align:left;font-size:14.5px}
+.swap .alt span{color:var(--muted);font-size:12px;white-space:nowrap}
+.swap .alt:last-of-type{border-bottom:0}
+.swap .keep{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:12px 0 6px;border-top:1px solid var(--line2);margin-top:6px}
+.swap .keep input{width:20px;height:20px;accent-color:var(--accent)}
+.swap .cust{display:grid;grid-template-columns:1fr auto;gap:8px;margin:8px 0}
 .dep-mini{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .dep-mini b{font-family:var(--f-serif);font-style:italic;font-weight:400;font-size:34px;line-height:1}
 .dep-mini small{display:block;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
@@ -1096,6 +1104,7 @@ function vueFocus() {
     <h1 class="f-name">${esc(x.nom)}</h1>
     ${vu("fmeta") ? `<div class="f-meta">Fourchette ${x.repsMin}–${x.repsMax} reps · repos ${Math.round(x.repos / 60 * 10) / 10} min${x.calib ? " · charge estimée : mets celle que tu utilises vraiment, elle servira de base" : ""}</div>` : ""}
   </div>
+  ${V.swap ? panneauRemplacer(ei, x) : ""}
   <div id="focus-rest"></div>
   ${si >= 0 ? `
   <div class="f-card">
@@ -1115,6 +1124,7 @@ function vueFocus() {
   ${toutFini ? `<div style="margin-top:18px"><button class="btn primary big" data-act="finish">Terminer la séance</button></div>` : ""}
   ${plus("fopt", "Options", "Fermer", "c")}
   ${vu("fopt") ? `<div class="f-opts">
+    <button data-act="f-swap">Remplacer l'exercice<span>machine prise, autre variante</span></button>
     <button data-det="fmeta">Infos de l'exercice<span>${vu("fmeta") ? "affichées" : "masquées"}</span></button>
     ${x.type === "barre" ? `<button data-det="disques">Disques à charger<span>${vu("disques") ? "affichés" : "masqués"}</span></button>` : ""}
     ${si >= 0 ? `<button data-addset="${ei}">Ajouter une série<span>${d.series.length} → ${d.series.length + 1}</span></button>` : ""}
@@ -1879,6 +1889,76 @@ document.addEventListener("submit", ev => {
     ajouterNutri([{ nom: nm, qte: $("#nmQ").value.trim(), kcal: num("#nmK"), p: num("#nmP"), g: num("#nmG"), l: num("#nmL") }]);
     V.nManual = false; render();
   }
+});
+
+
+/* ---------- remplacer un exercice pendant la séance ---------- */
+const VARIANTES = {
+  "Pectoraux": [["Développé incliné haltères","halteres",8,12],["Développé couché haltères","halteres",8,12],["Développé incliné Smith","barre",6,8],["Développé incliné barre","barre",6,10],["Développé couché Smith","barre",6,10],["Chest press","machine",8,12],["Pec deck","machine",10,15],["Écarté haltères","halteres",10,15],["Pompes lestées","poids_corps",8,15]],
+  "Épaules": [["Développé militaire haltères","halteres",8,12],["Développé épaules machine","machine",8,12],["Développé militaire Smith","barre",6,10],["Élévations latérales haltères","halteres",12,20],["Élévation latérale machine","machine",12,20],["Oiseau haltères buste penché","halteres",12,20],["Oiseau haltères sur banc incliné","halteres",12,20],["Reverse pec deck","machine",12,20]],
+  "Dos": [["Tractions lestées","poids_corps",6,10],["Tirage vertical prise large","machine",8,12],["Tirage vertical prise neutre serrée","machine",10,12],["Rowing haltère unilatéral","halteres",8,12],["Rowing barre","barre",6,10],["Rowing machine","machine",8,12],["Tirage horizontal prise serrée","machine",8,12],["Rowing T-bar","barre",8,10]],
+  "Trapèzes": [["Shrug barre","barre",10,15],["Shrug haltères","halteres",10,15],["Shrug Smith","barre",10,15]],
+  "Biceps": [["Curl barre EZ","barre",8,12],["Curl haltères","halteres",8,12],["Curl incliné haltères","halteres",8,12],["Curl marteau haltères","halteres",10,12],["Curl pupitre machine","machine",10,12],["Curl à la poulie","machine",10,15]],
+  "Triceps": [["Extension triceps poulie corde","machine",10,15],["Barre au front EZ","barre",8,12],["Extension triceps au-dessus de la tête (poulie)","machine",10,15],["Extension au-dessus de la tête haltère","halteres",10,15],["Dips lestés","poids_corps",6,10],["Développé couché prise serrée","barre",6,10]],
+  "Quadriceps": [["Leg press","machine",10,15],["Squat","barre",6,10],["Hack squat","machine",8,12],["Fentes bulgares","halteres",8,12],["Leg extension","machine",12,15]],
+  "Ischios": [["Soulevé de terre roumain","barre",6,10],["Leg curl (machine ischios)","machine",10,15],["Leg curl assis","machine",10,15],["Soulevé de terre roumain haltères","halteres",8,12]],
+  "Fessiers": [["Hip thrust","barre",8,12],["Hip thrust machine","machine",8,12],["Fentes marchées","halteres",10,12]],
+  "Mollets": [["Mollets debout au Smith","barre",8,12],["Mollets à la presse","machine",12,20],["Mollets unilatéral haltère sur marche","halteres",10,15],["Mollets assis haltère sur les genoux","halteres",12,20],["Mollets machine","machine",10,15]],
+  "Adducteurs": [["Machine à adducteurs","machine",12,15],["Fentes latérales","halteres",10,12]],
+  "Avant-bras": [["Curl inversé barre EZ (avant-bras)","barre",12,15],["Curl poignets haltères","halteres",15,20]],
+  "Abdos": [["Relevés de jambes suspendu","poids_corps",10,15],["Crunch à la poulie","machine",12,15],["Roue abdominale","poids_corps",8,15]],
+  "Cou": [["Cou · extension au harnais","machine",15,20],["Cou · flexion avec disque (couché)","machine",15,20],["Cou · latéral à la serviette","poids_corps",12,15]]
+};
+function optionsRemplacement(x) {
+  const pris = new Set(draft.exos.map(z => z.exoId));
+  const deja = Object.values(etat.exos).filter(z => z.groupe === x.groupe && z.id !== x.id && !pris.has(z.id));
+  const noms = new Set(Object.values(etat.exos).map(z => z.nom));
+  const nouveaux = (VARIANTES[x.groupe] || []).filter(v => !noms.has(v[0])).map(v => ({ nouveau: true, nom: v[0], type: v[1], repsMin: v[2], repsMax: v[3] }));
+  return deja.map(z => ({ id: z.id, nom: z.nom, info: `${z.type === "poids_corps" ? (z.charge ? "+" + nf(z.charge) : "PDC") : nf(z.charge)}${z.type === "poids_corps" && !z.charge ? "" : " kg"}` })).concat(nouveaux.map(v => ({ ...v, info: "nouveau" })));
+}
+function panneauRemplacer(ei, x) {
+  const opts = optionsRemplacement(x);
+  return `<div class="swap"><div class="h"><span class="label">Remplacer ${esc(x.nom)}</span><button class="icn" data-act="swap-close" aria-label="Fermer">${I.x}</button></div>
+    ${opts.map((o, i) => `<button class="alt" data-swapi="${i}">${esc(o.nom)}<span>${o.info}</span></button>`).join("")}
+    <form class="cust" data-form="swap-cust"><input id="swapNom" class="inp" placeholder="Autre exercice…" autocomplete="off"><button class="btn sm" type="submit">OK</button></form>
+    <label class="keep" for="swapKeep"><input id="swapKeep" type="checkbox" ${V.swapKeep ? "checked" : ""}> Le garder pour les prochaines séances</label></div>`;
+}
+function remplacerExo(ei, cible) {
+  const d = draft.exos[ei], ancien = etat.exos[d.exoId]; if (!ancien) return;
+  let x2;
+  if (cible.id) x2 = etat.exos[cible.id];
+  else {
+    const type = cible.type || ancien.type;
+    let ch = ancien.charge || 0;
+    if (ancien.type === "barre" && type === "halteres") ch = ch * 0.4; else if (ancien.type === "halteres" && type === "barre") ch = ch * 2.2; else if (type === "poids_corps") ch = 0;
+    const mn = cible.repsMin || ancien.repsMin, mx = cible.repsMax || ancien.repsMax;
+    x2 = { id: uid(), nom: cible.nom, groupe: ancien.groupe, type, charge: arr(ch, type), repsMin: mn, repsMax: mx, series: ancien.series, inc: PAS[type] || 2.5, repos: ancien.repos || 120, repsCible: mn, echecs: 0, calib: true };
+    if (ancien.opt) x2.opt = true;
+    etat.exos[x2.id] = x2;
+  }
+  if (!x2) return;
+  const faites = d.series.filter(z => z.fait).length, reste = Math.max(1, d.series.length - faites);
+  const r = Math.max(0, draft.exos.filter(z => !etat.exos[z.exoId]?.opt).indexOf(d));
+  const p = planExo(x2, x2.opt ? "normale" : draft.niveau, r);
+  const neuf = { exoId: x2.id, charge: p.charge, prevue: p.charge, cible: p.cible, ressenti: "", series: Array.from({ length: faites ? reste : d.series.length }, () => ({ reps: "", fait: false })) };
+  if (faites) { d.series = d.series.filter(z => z.fait); draft.exos.splice(ei + 1, 0, neuf); draft.cur = ei + 1; }
+  else draft.exos[ei] = neuf;
+  if (V.swapKeep) { const j = etat.jours.find(z => z.id === draft.jourId); const k = j ? j.exos.indexOf(ancien.id) : -1; if (k >= 0 && !j.exos.includes(x2.id)) j.exos[k] = x2.id; }
+  saveEtat(true); saveDraft(); stopRepos();
+  V.swap = false; V.swapKeep = false; V.det.fopt = false; ls.set(K_DET, V.det);
+}
+document.addEventListener("click", ev => {
+  const t = ev.target.closest("button"); if (!t || !draft) return;
+  const ds = t.dataset;
+  if (ds.act === "f-swap") { V.swap = true; render(); window.scrollTo(0, 0); return; }
+  if (ds.act === "swap-close") { V.swap = false; render(); return; }
+  if (ds.swapi !== undefined) { const d = draft.exos[draft.cur], x = etat.exos[d.exoId]; const o = optionsRemplacement(x)[+ds.swapi]; if (o) remplacerExo(draft.cur, o); render(); window.scrollTo(0, 0); }
+});
+document.addEventListener("change", ev => { if (ev.target.id === "swapKeep") V.swapKeep = ev.target.checked; });
+document.addEventListener("submit", ev => {
+  if (ev.target.dataset.form !== "swap-cust" || !draft) return;
+  const nom = ($("#swapNom").value || "").trim(); if (!nom) return;
+  remplacerExo(draft.cur, { nom }); render(); window.scrollTo(0, 0);
 });
 
 /* ---------- coach ---------- */
