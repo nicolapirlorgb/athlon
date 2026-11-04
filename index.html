@@ -760,6 +760,11 @@ function migrer() {
     });
     etat.v = 8; saveEtat(true);
   }
+  if ((etat.v || 1) < 9) {
+    const iso = /^(Curl|Extension triceps|Extension au-dessus|Élévation|Oiseau|Mollets|Poulie vis-à-vis|Écarté|Pec deck|Reverse pec deck|Extension poignets)/;
+    Object.values(etat.exos).forEach(x => { if (iso.test(x.nom) && x.groupe !== "Abdos" && x.groupe !== "Cou") { x.court = true; x.repos = 90; x.reposRef = 90; } });
+    etat.v = 9; saveEtat(true);
+  }
   if (!etat.nutri) { normaliser(etat); saveEtat(true); }
 }
 /* Repos du moment : base de l'exercice, ajustée à la série et à la forme */
@@ -803,7 +808,7 @@ function reposAppris(x, d) {
   const med = pris[Math.floor(pris.length / 2)], ref = x.reposRef || REPOS[x.nom] || x.repos;
   let v = Math.round((0.75 * x.repos + 0.25 * med) / 15) * 15;
   v = Math.max(ref - 60, Math.min(ref + 60, v));
-  if (!x.opt) v = Math.max(120, v);
+  if (!x.opt && !x.court) v = Math.max(120, v);
   return v !== x.repos ? v : null;
 }
 const fmtRepos = v => Math.floor(v / 60) + ":" + String(v % 60).padStart(2, "0");
@@ -1619,6 +1624,8 @@ function ouvrirBilan() {
     <div class="row" style="justify-content:space-between"><h3>Bilan</h3><button class="icn" data-close aria-label="Fermer">${I.x}</button></div>
     <p class="muted" style="margin:0;font-size:13.5px">Voici comment ton programme s'adapte pour la prochaine fois.</p>
     <div>${lignes.map(l => { const nv = reposAppris(l.x, l.d); return `<div class="verdict"><span class="b ${l.ev.type}">${lbl[l.ev.type]}</span><div><b>${esc(l.x.nom)}</b><div class="muted" style="font-size:13px">${esc(l.ev.txt)}${nv ? ` Repos ajusté à ton rythme : ${fmtRepos(l.x.repos)} → ${fmtRepos(nv)}.` : ""}</div></div></div>`; }).join("")}</div>
+    <div class="label" style="margin-top:6px">Ton ressenti sur la séance</div>
+    <div class="fq" role="group" aria-label="Ressenti" style="grid-template-columns:repeat(2,1fr)">${[["facile", "Facile"], ["ok", "Correct"], ["dur", "Dur"], ["epuise", "Épuisé"]].map(([k, l]) => `<button data-rfin="${k}" aria-pressed="${V.rfin === k}">${l}</button>`).join("")}</div>
     <button class="btn primary big" data-act="save">Enregistrer la séance</button>
     <button class="btn ghost" data-close>Continuer la séance</button>
   </div></div>`;
@@ -1654,6 +1661,7 @@ function enregistrer() {
   const idx = etat.jours.findIndex(j => j.id === draft.jourId);
   if (idx >= 0) etat.prochain = (idx + 1) % etat.jours.length;
   s.tonnage = tonnageSeance(s);
+  if (V.rfin) s.ressentiFin = V.rfin; V.rfin = null;
   if (draft.extra) s.court = true;
   saveSeance(s); saveEtat(true);
   V.recap = s;
@@ -2022,6 +2030,7 @@ function remplacerExo(ei, cible) {
     const mn = cible.repsMin || ancien.repsMin, mx = cible.repsMax || ancien.repsMax;
     x2 = { id: uid(), nom: cible.nom, groupe: ancien.groupe, type, charge: arr(ch, type), repsMin: mn, repsMax: mx, series: ancien.series, inc: PAS[type] || 2.5, repos: ancien.repos || 120, repsCible: mn, echecs: 0, calib: true };
     if (ancien.opt) x2.opt = true;
+    if (/^(Curl|Extension|Élévation|Oiseau|Mollets|Poulie|Écarté|Pec deck|Reverse)/.test(x2.nom)) { x2.court = true; x2.repos = 90; x2.reposRef = 90; }
     etat.exos[x2.id] = x2;
   }
   if (!x2) return;
@@ -2161,6 +2170,7 @@ function vueRecap(s) {
     <div class="s">soulevés au total</div>
     ${tA ? `<div class="c" style="color:${t >= tA ? "var(--good)" : "var(--muted)"}">${t >= tA ? "+" : ""}${Math.round((t - tA) / Math.max(1, tA) * 100)} % par rapport à la dernière ${esc(s.jour.split("·")[0].trim())}</div>` : voit >= 1 ? `<div class="c muted">≈ ${nf(Math.round(voit * 10) / 10)} voitures citadines</div>` : ""}
   </div>
+  ${s.ressentiFin ? `<p style="text-align:center;margin:10px 0 0;font-size:13.5px"><span class="muted">Ressenti :</span> ${{ facile: "Facile", ok: "Correct", dur: "Dur", epuise: "Épuisé" }[s.ressentiFin]}${s.ressentiFin === "epuise" ? `<br><span class="muted" style="font-size:12.5px">Mise sur le sommeil et les protéines ce soir. Si ça revient plusieurs fois, choisis « Fatigué » au départ de la prochaine séance.</span>` : ""}</p>` : ""}
   <div class="rc-grid"><div><b class="num">${s.duree}</b><span>min</span></div><div><b class="num">${ex.filter(e => (e.reps || []).length).length}</b><span>exos</span></div><div><b class="num">${nS}</b><span>séries</span></div><div><b class="num">${nR}</b><span>reps</span></div></div>
   ${recs.length ? `<div class="label" style="margin-top:22px">Records</div><div class="rc-list">${recs.map(r => `<div><span>${esc(r.nom)}</span><b class="pr num">${nf(r.v)} kg 1RM est.</b></div>`).join("")}</div>` : ""}
   ${up.length ? `<div class="label" style="margin-top:22px">La prochaine fois, ça monte</div><div class="rc-list">${up.map(u => `<div><span>${esc(u.nom)}</span><b class="num">${nf(u.kg)} kg</b></div>`).join("")}</div>` : ""}
@@ -2183,6 +2193,7 @@ document.addEventListener("click", ev => {
     saveSeance(s); V.cardio = false; V.recap = s; render(); window.scrollTo(0, 0);
   }
 });
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-rfin]"); if (b) { V.rfin = V.rfin === b.dataset.rfin ? null : b.dataset.rfin; ouvrirBilan(); } });
 document.addEventListener("change", ev => { const k = ev.target.dataset && ev.target.dataset.cdv; if (k) { const v = parseFloat(String(ev.target.value).replace(",", ".")); if (!isNaN(v)) V.cd[k] = Math.max(0, v); render(); } });
 
 
@@ -2214,7 +2225,7 @@ function contexteCoach() {
     seances7jours: seances.filter(s => s.date >= limS).length,
     volume7jours: vol,
     programme: etat.jours.map(j => ({ jour: j.nom, exos: j.exos.map(id => { const x = etat.exos[id]; return { exoId: id, nom: x.nom, groupe: x.groupe, type: x.type, charge: x.charge, repsMin: x.repsMin, repsMax: x.repsMax, series: x.series, repsVisees: x.repsCible, repos: x.repos, optionnel: !!x.opt, aCalibrer: !!x.calib }; }) })),
-    seances: seances.slice(0, 15).map(s => ({ date: s.date, jour: s.jour, forme: s.niveau, dureeMin: s.duree, exos: (s.exos || []).map(e => ({ nom: e.nom, kg: e.charge, reps: e.reps, objectif: e.cible, ressenti: e.ressenti, verdict: e.verdict })) }))
+    seances: seances.slice(0, 15).map(s => ({ date: s.date, jour: s.jour, forme: s.niveau, ressentiFin: s.ressentiFin, dureeMin: s.duree, exos: (s.exos || []).map(e => ({ nom: e.nom, kg: e.charge, reps: e.reps, objectif: e.cible, ressenti: e.ressenti, verdict: e.verdict })) }))
   };
 }
 async function copierPourCoach() {
@@ -2260,7 +2271,7 @@ function appliquerAjustements() {
       const x = etat.exos[a.exoId]; if (!x) return;
       let v = a.valeur;
       if (a.champ === "charge") v = arr(v, x.type);
-      else if (a.champ === "repos") v = x.opt ? Math.round(v) : Math.max(120, Math.round(v));
+      else if (a.champ === "repos") v = (x.opt || x.court) ? Math.max(45, Math.round(v)) : Math.max(120, Math.round(v));
       else v = Math.max(1, Math.round(v));
       x[a.champ] = v;
       if (x.repsMin > x.repsMax) x.repsMax = x.repsMin;
@@ -2283,14 +2294,14 @@ V.chatBusy = false; V.chatDraft = ""; V.chatErr = ""; V.apiEdit = false; V.confi
 const COACH_SYS = `Tu es le coach personnel de l'athlète qui utilise l'appli ATHLON : préparateur physique expert, formé en physiologie de l'exercice, anatomie fonctionnelle, biomécanique et nutrition sportive, qui s'appuie sur la recherche actuelle.
 Repères : hypertrophie portée par la tension mécanique et le travail proche de l'échec (0 à 3 reps en réserve), environ 10 à 20 séries efficaces par muscle et par semaine, fréquence d'au moins 2 fois par muscle, intérêt des positions étirées sous charge ; force portée par la spécificité, l'intensité (plus de 80 % du max) et la technique ; récupération (sommeil, stress) ; pour la prise de muscle, léger surplus calorique et environ 1,6 à 2,2 g de protéines par kg.
 Tu raisonnes en anatomie : gastrocnémiens genou tendu et soléaire genou fléchi ; chef long du triceps bras au-dessus de la tête ; chef long du biceps étiré en curl incliné ; faisceau claviculaire des pecs en incliné ; trapèzes supérieurs aux shrugs ; muscles du cou en flexion, extension et inclinaison.
-Profil : 22 ans, 1,83 m, 5 ans de musculation, développé couché à 125 kg qu'il veut faire monter. Poids habituel 85-86 kg, récemment plus léger car il a moins bien mangé. Push/Pull/Jambes en rotation (2 push, 2 pull, 1 jambes), 4 à 5 séances par semaine sans jours fixes, de 1 h à 1 h 45 échauffement compris, repos de 2 min minimum sur les exercices principaux. Tout changement de programme doit garder chaque séance dans cette durée. Priorités : mollets et bras, garder les pecs, force au bench. Pas de machine à mollets ; a un harnais pour le cou et une Smith machine. Abdos et cou sont un bloc optionnel. Aucune blessure déclarée.
+Profil : 22 ans, 1,83 m, 5 ans de musculation, développé couché à 125 kg qu'il veut faire monter. Poids habituel 85-86 kg, récemment plus léger car il a moins bien mangé. Push/Pull/Jambes en rotation (2 push, 2 pull, 1 jambes), 4 à 5 séances par semaine sans jours fixes, de 1 h à 1 h 45 échauffement compris, repos de 2 à 4 min sur les polyarticulaires et 90 s sur l'isolation des petits muscles. Tout changement de programme doit garder chaque séance dans cette durée. Priorités : mollets et bras, garder les pecs, force au bench. Pas de machine à mollets ; a un harnais pour le cou et une Smith machine. Abdos et cou sont un bloc optionnel. Aucune blessure déclarée.
 Style : français, tutoiement, direct, concret et bref (souvent 80 à 200 mots), chaque conseil justifié en une phrase par le mécanisme. Texte simple sans Markdown : pas de #, pas de **, listes avec « – ». Pas de conseil médical : en cas de douleur, conseille de consulter un professionnel de santé.
 Si tu proposes des changements précis de son programme, termine ta réponse par un bloc de code json (et rien après) de cette forme, que l'appli transformera en bouton Appliquer :
 \`\`\`json
 {"ajustements":[{"exoId":"id existant","champ":"charge|series|repsMin|repsMax|repos","valeur":nombre,"raison":"une phrase"}],"ajouts":[{"jour":"nom exact d'une journée","nom":"exercice","groupe":"${GROUPES.join("|")}","type":"barre|halteres|machine|poids_corps","charge":nombre,"repsMin":nombre,"repsMax":nombre,"series":nombre,"repos":secondes,"raison":"une phrase"}]}
 \`\`\`
 Quand il t'envoie des photos de son physique : compare les dates, juge les proportions entre groupes musculaires (pecs, épaules, dos, bras, abdos, jambes, mollets) et l'évolution avec prudence (lumière, angle, pump peuvent tromper), dis clairement quels muscles sont en retard et adapte le programme en conséquence. Reste factuel et bienveillant, jamais de jugement sur le corps au-delà de l'entraînement.
-N'utilise que des exoId présents dans ses données, pas de repos sous 120 s pour un exercice non optionnel, et pas de bloc json si tu ne proposes rien à changer.`;
+N'utilise que des exoId présents dans ses données, pas de repos sous 120 s pour un polyarticulaire (90 s minimum pour l'isolation), et pas de bloc json si tu ne proposes rien à changer.`;
 
 function construireAdj(r) {
   if (!r || typeof r !== "object") return [];
@@ -2315,7 +2326,7 @@ function appliquerListe(liste, off) {
       const x = etat.exos[a.exoId]; if (!x) return;
       let v = a.valeur;
       if (a.champ === "charge") v = arr(v, x.type);
-      else if (a.champ === "repos") v = x.opt ? Math.round(v) : Math.max(120, Math.round(v));
+      else if (a.champ === "repos") v = (x.opt || x.court) ? Math.max(45, Math.round(v)) : Math.max(120, Math.round(v));
       else v = Math.max(1, Math.round(v));
       x[a.champ] = v;
       if (x.repsMin > x.repsMax) x.repsMax = x.repsMin;
