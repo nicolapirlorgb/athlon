@@ -329,6 +329,17 @@ h2.sec .ey{display:block;font-family:var(--f-body);font-size:10.5px;font-weight:
 .f-dot{min-width:34px;height:34px;border-radius:999px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--dim);padding:0 8px}
 .f-dot.ok{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 .f-dot.cur{border-color:var(--accent);color:var(--fg)}
+button.f-dot{cursor:pointer;font-family:inherit}
+button.f-dot:disabled{cursor:default}
+.f-dot.ok{flex-direction:column;line-height:1.05;min-width:52px;height:46px;border-radius:14px}
+.f-dot.ok small{font-size:9.5px;font-weight:500;opacity:.65}
+.f-dot.sel{outline:2px solid var(--accent);outline-offset:2px}
+.f-hint{text-align:center;font-size:11px;color:var(--dim);margin-top:-8px}
+.fedit{background:var(--raise);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.fedit .r{display:grid;grid-template-columns:74px 1fr;align-items:center;gap:10px}
+.fedit .r .stepper{justify-self:start}
+.fedit .keep{display:flex;align-items:center;gap:10px;font-size:13px}
+.fedit .keep input{width:20px;height:20px;accent-color:var(--accent)}
 .f-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .f-nav .btn{width:100%}
 .f-done{text-align:center;padding:10px 0}
@@ -859,7 +870,7 @@ function chargeEff(x, kg) { return x.type === "poids_corps" ? (poidsActuel() || 
 function evaluer(x, d) {
   const faits = d.series.filter(s => s.fait).map(s => Number(s.reps) || 0);
   if (!faits.length) return { type: "skip", txt: "Non fait : objectif inchangé." };
-  const used = Number(d.charge) || 0, minR = Math.min(...faits), complet = faits.length >= d.series.length;
+  const used = chargeUtilisee(d), minR = Math.min(...faits), complet = faits.length >= d.series.length;
   const cible = x.repsCible ?? x.repsMin;
   const ch = { charge: x.charge, repsCible: cible, echecs: x.echecs || 0 };
   if (x.calib) {
@@ -1113,12 +1124,12 @@ function vueFocus() {
     <div class="f-load"><span class="at">à</span><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div></div>
     ${x.type === "barre" && vu("disques") ? `<div class="plates" style="justify-content:center">${pl.length ? "Par côté" : "Barre seule"} ${pl.map(p => `<span class="plate k${p >= 2.5 && p < 5 ? 2 : p < 2.5 ? 1 : p}">${nf(p)}</span>`).join("")}</div>` : ""}
     <button class="btn primary big" data-act="f-ok">Série validée</button>
-    <div class="f-dots">${d.series.map((s, i) => `<span class="f-dot ${s.fait ? "ok" : i === si ? "cur" : ""}">${s.fait ? esc(s.reps) : i + 1}</span>`).join("")}</div>
+    ${bullesSeries(ei, d, si, x)}
   </div>
 ` : `
   <div class="f-card f-done">
     <div class="label">Exercice terminé</div>
-    <div class="t num">${d.series.map(s => esc(s.reps)).join(" · ")} <span class="muted" style="font-size:20px">reps</span></div>
+    ${bullesSeries(ei, d, -1, x)}
     ${suivant >= 0 ? `<button class="btn primary big" data-goto="${suivant}">${etat.exos[draft.exos[suivant].exoId]?.opt && !x.opt ? "Bloc optionnel" : "Exercice suivant"}</button>` : ""}
   </div>`}
   ${toutFini ? `<div style="margin-top:18px"><button class="btn primary big" data-act="finish">Terminer la séance</button></div>` : ""}
@@ -1150,6 +1161,7 @@ function validerSerie(ei, si) {
   if (inp && inp.value.trim() !== "") s.reps = inp.value.trim();
   if (s.reps === "" || s.reps == null) s.reps = String(d.cible);
   s.fait = true;
+  s.kg = Number(d.charge) || 0;
   const x = etat.exos[d.exoId];
   if (repos && repos.ei === ei && repos.debut && x) {
     const pris = Math.round((Date.now() - repos.debut) / 1000) - (x.repsMax <= 6 ? 30 : 45);
@@ -1561,7 +1573,7 @@ function enregistrer() {
   for (const d of draft.exos) {
     const x = etat.exos[d.exoId]; if (!x) continue;
     const ev = evaluer(x, d);
-    s.exos.push({ exoId: x.id, nom: x.nom, groupe: x.groupe, type: x.type, charge: Number(d.charge) || 0, reps: d.series.filter(z => z.fait).map(z => Number(z.reps) || 0), cible: d.cible, ressenti: d.ressenti, verdict: ev.type });
+    s.exos.push({ exoId: x.id, nom: x.nom, groupe: x.groupe, type: x.type, charge: chargeUtilisee(d), kgs: d.series.filter(z => z.fait).map(z => z.kg ?? (Number(d.charge) || 0)), reps: d.series.filter(z => z.fait).map(z => Number(z.reps) || 0), cible: d.cible, ressenti: d.ressenti, verdict: ev.type });
     if (ev.ch) { x.charge = ev.ch.charge; x.repsCible = ev.ch.repsCible; x.echecs = ev.ch.echecs; if (ev.ch.calib === false) delete x.calib; }
     const nv = reposAppris(x, d); if (nv) { if (!x.reposRef) x.reposRef = REPOS[x.nom] || x.repos; x.repos = nv; }
   }
@@ -1960,6 +1972,48 @@ document.addEventListener("submit", ev => {
   const nom = ($("#swapNom").value || "").trim(); if (!nom) return;
   remplacerExo(draft.cur, { nom }); render(); window.scrollTo(0, 0);
 });
+
+
+/* ---------- corriger une série déjà validée ---------- */
+function chargeUtilisee(d) {
+  const kg = d.series.filter(z => z.fait).map(z => z.kg ?? (Number(d.charge) || 0));
+  if (!kg.length) return Number(d.charge) || 0;
+  const n = {}; kg.forEach(v => n[v] = (n[v] || 0) + 1);
+  return +Object.keys(n).sort((a, b) => n[b] - n[a] || a - b)[0];
+}
+function bullesSeries(ei, d, si, x) {
+  const ed = V.fe && V.fe.ei === ei ? V.fe : null;
+  const pdc = x.type === "poids_corps";
+  const dots = `<div class="f-dots">${d.series.map((s, i) => s.fait
+    ? `<button class="f-dot ok ${ed && ed.i === i ? "sel" : ""}" data-fedit="${ei}-${i}" aria-label="Corriger la série ${i + 1}">${esc(s.reps)}<small>${pdc && !(s.kg ?? d.charge) ? "PDC" : (pdc ? "+" : "") + nf(s.kg ?? d.charge)}</small></button>`
+    : `<span class="f-dot ${i === si ? "cur" : ""}">${i + 1}</span>`).join("")}</div>`;
+  const hint = d.series.some(z => z.fait) && !ed ? `<div class="f-hint">Touche une série pour la corriger</div>` : "";
+  if (!ed) return dots + hint;
+  return dots + `<div class="fedit">
+    <div class="label">Corriger la série ${ed.i + 1}</div>
+    <div class="r"><span class="label">Reps</span><div class="stepper"><button data-fer="-1" aria-label="Une rep de moins">−</button><input class="num" readonly value="${ed.reps}" aria-label="Répétitions"><button data-fer="1" aria-label="Une rep de plus">+</button></div></div>
+    <div class="r"><span class="label">Poids</span><div class="stepper"><button data-fek="-1" aria-label="Moins lourd">−</button><input id="feKg" class="num" inputmode="decimal" value="${nf(ed.kg)}" aria-label="Poids en kg"><span class="u">${pdc ? "kg lest" : "kg"}</span><button data-fek="1" aria-label="Plus lourd">+</button></div></div>
+    <label class="keep" for="feAll"><input id="feAll" type="checkbox" ${ed.all ? "checked" : ""}> Ce poids pour toutes les séries de l'exercice</label>
+    <div class="row"><button class="btn sm primary" data-act="fe-save">Enregistrer</button><button class="btn sm" data-act="fe-cancel">Annuler</button></div>
+  </div>`;
+}
+document.addEventListener("click", ev => {
+  const t = ev.target.closest("button"); if (!t || !draft) return;
+  const ds = t.dataset;
+  if (ds.fedit) { const [ei, i] = ds.fedit.split("-").map(Number), d = draft.exos[ei], s = d.series[i]; V.fe = { ei, i, reps: Number(s.reps) || 0, kg: s.kg ?? (Number(d.charge) || 0), all: true }; render(); return; }
+  if (!V.fe) return;
+  const d = draft.exos[V.fe.ei], x = d && etat.exos[d.exoId]; if (!x) return;
+  if (ds.fer) { V.fe.reps = Math.max(0, V.fe.reps + (+ds.fer)); render(); return; }
+  if (ds.fek) { const k = $("#feKg"); const cur = k ? parseFloat(String(k.value).replace(",", ".")) : V.fe.kg; V.fe.kg = Math.max(0, arr((isNaN(cur) ? V.fe.kg : cur) + (+ds.fek) * (PAS[x.type] || 2.5), x.type)); render(); return; }
+  if (ds.act === "fe-cancel") { V.fe = null; render(); return; }
+  if (ds.act === "fe-save") {
+    const k = $("#feKg"); const kg = k ? parseFloat(String(k.value).replace(",", ".")) : V.fe.kg; if (!isNaN(kg)) V.fe.kg = Math.max(0, kg);
+    const s = d.series[V.fe.i]; s.reps = String(V.fe.reps);
+    if (V.fe.all) { d.series.forEach(z => { if (z.fait) z.kg = V.fe.kg; }); d.charge = V.fe.kg; } else s.kg = V.fe.kg;
+    V.fe = null; saveDraft(); render(); return;
+  }
+});
+document.addEventListener("change", ev => { if (ev.target.id === "feAll" && V.fe) V.fe.all = ev.target.checked; });
 
 /* ---------- coach ---------- */
 function contexteCoach() {
