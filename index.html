@@ -192,7 +192,7 @@ h2.sec::before{content:"";display:inline-block;vertical-align:middle;width:14px;
 
 /* Barre d'onglets */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(11,12,14,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.tabs nav{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);height:var(--tab-h)}
+.tabs nav{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--tab-h)}
 .tabs button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:9.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .tabs button svg{width:22px;height:22px}
 .tabs button[aria-current="page"]{color:var(--fg)}
@@ -734,7 +734,7 @@ let draft = ls.get(K_DRAFT);
 let mode = "local", etatRef = null, syncState = "local";
 let photosCol = null, assetsNs = null, photos = [];
 const V = {
-  tab: ls.get(K_TAB) || "seance",
+  tab: ({ progres: "evolution", photos: "evolution", coach: "evolution" })[ls.get(K_TAB)] || ls.get(K_TAB) || "seance",
   jour: null,
   forme: { sommeil: 3, energie: 3, courbatures: 3 },
   poidsJour: "",
@@ -881,6 +881,7 @@ const I = {
   programme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M8 11h8M8 15h5"/></svg>',
   progres: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l5-5 4 3 6-7"/><path d="M15 7h5v5"/></svg>',
   nutrition: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21v-8c-1.7 0-3-1.6-3-5s1.3-5 3-5v18"/></svg>',
+  evolution: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l5-5 4 3 6-7"/><path d="M15 7h5v5"/></svg>',
   coach: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>',
   photos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
   profil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
@@ -947,7 +948,7 @@ document.addEventListener("click", ev => {
 /* ---------- rendu ---------- */
 function render() {
   $("#hdate").textContent = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  $("#tabs").innerHTML = [["seance","Séance"],["programme","Programme"],["nutrition","Nutrition"],["progres","Progrès"],["coach","Coach"],["photos","Photos"]]
+  $("#tabs").innerHTML = [["seance","Séance"],["programme","Programme"],["nutrition","Nutrition"],["evolution","Évolution"]]
     .map(([k, l]) => `<button data-tab="${k}" ${V.tab === k ? 'aria-current="page"' : ""}>${I[k]}${l}</button>`).join("");
   const hp = $("#hprof"); if (hp) { hp.innerHTML = I.profil; if (V.tab === "profil") hp.setAttribute("aria-current", "page"); else hp.removeAttribute("aria-current"); }
   const m = $("#main");
@@ -955,6 +956,7 @@ function render() {
   else if (V.tab === "programme") m.innerHTML = vueProgramme();
   else if (V.tab === "progres") { m.innerHTML = vueProgres(); }
   else if (V.tab === "nutrition") { m.innerHTML = vueNutrition(); }
+  else if (V.tab === "evolution") { m.innerHTML = vueEvolution(); requestAnimationFrame(apresEvolution); }
   else if (V.tab === "photos") { m.innerHTML = vuePhotos(); }
   else if (V.tab === "coach") { m.innerHTML = vueChat(); requestAnimationFrame(finChat); }
   else m.innerHTML = vueProfil();
@@ -1273,9 +1275,10 @@ function vueProgres() {
     ${h.length && vu("force") ? `<div style="overflow-x:auto;margin-top:4px"><table class="tbl num"><thead><tr><th>Date</th><th>Charge</th><th>Reps</th></tr></thead><tbody>${h.slice(-5).reverse().map(r => `<tr><td>${dCourt(r.x)}</td><td>${r.type === "poids_corps" ? "+" : ""}${nf(r.charge)} kg</td><td>${r.reps.join(" · ")}</td></tr>`).join("")}</tbody></table></div>` : ""}
   </div>
 
-  <h2 class="sec">Volume sur 7 jours</h2>
-  <div class="panel"><div class="vol">${volHtml}</div></div>
+  ${plus("vol", "Volume par muscle (7 jours)")}
+  ${vu("vol") ? `<div class="panel"><div class="vol">${volHtml}</div></div>` : ""}
 
+<!--POIDS-->
   <h2 class="sec">Poids de corps</h2>
   <div class="panel">
     <div class="row" style="justify-content:space-between;align-items:flex-end"><div class="big num">${poidsActuel() ? nf(poidsActuel()) : "—"}<small>kg</small></div>
@@ -1283,10 +1286,34 @@ function vueProgres() {
     ${courbe(pPts, "poids")}
     ${tendance}
   </div>
-
+<!--/POIDS-->
 `;
 }
 
+/* ---------- Évolution : physique, charges, coach ---------- */
+function blocCoach() { return vueChat(); }
+function apresEvolution() { finChat(); }
+function vueEvolution() {
+  const prog = vueProgres();
+  const mP = prog.match(/<!--POIDS-->([\s\S]*?)<!--\/POIDS-->/);
+  const poids = mP ? mP[1] : "", charges = prog.replace(/<!--POIDS-->[\s\S]*?<!--\/POIDS-->/, "");
+  const ph = vuePhotos(), k = ph.indexOf("<!--PH-DETAILS-->");
+  const phTop = (k >= 0 ? ph.slice(0, k) : ph).replace('<h2 class="sec">Photo du jour</h2>', ""), phRest = k >= 0 ? ph.slice(k) : "";
+  const pes = etat.pesees.slice().sort((a, b) => a.d < b.d ? -1 : 1);
+  const pa = pes.length ? pes[pes.length - 1].kg : null, p0 = pes.length ? pes[0] : null;
+  const dlt = pa != null && p0 && pes.length > 1 ? Math.round((pa - p0.kg) * 10) / 10 : null;
+  return `
+  <h2 class="sec">Ton physique</h2>
+  <div class="dep-mini" style="margin-bottom:14px"><div><small>Poids</small><b class="num">${pa != null ? nf(pa) : "—"}<span class="muted" style="font-size:16px"> kg</span></b></div>
+    ${dlt != null ? `<div style="text-align:right"><small>Depuis le ${dCourt(p0.d)}</small><b class="num ${dlt >= 0 ? "" : ""}" style="color:${dlt >= 0 ? "var(--good)" : "var(--bad)"}">${dlt >= 0 ? "+" : ""}${nf(dlt)}</b></div>` : ""}</div>
+  ${phTop}
+  ${plus("phys", "Courbe de poids et avant / après")}
+  ${vu("phys") ? poids + phRest : ""}
+  <div style="margin-top:12px"></div>
+  <h2 class="sec">Tes charges</h2>
+  ${charges.replace('<h2 class="sec">Force estimée</h2>', "")}
+  <div style="margin-top:40px">${blocCoach()}</div>`;
+}
 function vueCoach() {
   const adj = V.adj;
   const champL = { charge: "charge", series: "séries", repsMin: "reps min", repsMax: "reps max", repos: "repos" };
@@ -1390,6 +1417,7 @@ function vuePhotos() {
     ${V.photoErr ? `<p style="color:var(--bad);font-size:13px;margin:0">${esc(V.photoErr)}</p>` : ""}
   </div>
 
+<!--PH-DETAILS-->
   <h2 class="sec">Avant / après</h2>
   <div class="panel">
     <div class="seg" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px" role="group" aria-label="Vue">${VUES.map(([v, l]) => `<button data-vue="${v}" aria-pressed="${V.vue === v}">${l}</button>`).join("")}</div>
@@ -1978,7 +2006,11 @@ function ligneAdj(a, id, on) {
 }
 
 function vueChat() {
-  if (!api.key || V.apiEdit) return vueCle();
+  if (V.apiEdit) return vueCle();
+  if (!api.key) return `<h2 class="sec">Ton coach</h2>
+  <div class="panel stack"><p style="margin:0;font-size:14px">Pose tes questions à ton coach : il voit tes séances, ton poids, ton programme et tes photos.</p>
+    <div><button class="btn sm primary" data-act="cle">Activer le coach</button></div>
+    ${plus("coachcp", "Sans clé : par copier-coller")}${vu("coachcp") ? vueCoach() : ""}</div>`;
   const vide = !chat.length;
   const sugg = ["Analyse mes dernières séances", "Comment faire monter mon bench ?", "Pourquoi mes mollets progressent peu ?", "Que manger pour reprendre 3 kg ?", "Mon programme est-il bien équilibré ?"];
   return `
@@ -2024,15 +2056,15 @@ function vueCle() {
     <div class="field"><label class="label" for="apiKey">Clé API</label><input id="apiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(api.key)}"></div>
     <div class="field"><label class="label" for="apiModel">Modèle</label><select id="apiModel">${MODELES.map(([k, l]) => `<option value="${k}" ${api.model === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
     <p class="muted" style="margin:0;font-size:12.5px">C'est payé à l'usage, à part de ton abonnement Claude. Sonnet suffit pour la plupart des questions ; Opus réfléchit plus mais coûte plus cher.</p>
-    <div class="row"><button class="btn sm primary" data-act="cle-ok">Enregistrer</button>${api.key ? `<button class="btn sm" data-act="cle-annuler">Annuler</button><button class="btn sm danger" data-act="cle-suppr">Supprimer la clé</button>` : ""}</div>
+    <div class="row"><button class="btn sm primary" data-act="cle-ok">Enregistrer</button><button class="btn sm" data-act="cle-annuler">Annuler</button>${api.key ? `<button class="btn sm danger" data-act="cle-suppr">Supprimer la clé</button>` : ""}</div>
     ${V.chatErr ? `<p style="color:var(--bad);font-size:13px;margin:0">${esc(V.chatErr)}</p>` : ""}
   </div>
-  ${vueCoach()}`;
+  `;
 }
 function finChat() {
   const ta = $("#chatIn");
   if (ta) { const fit = () => { ta.style.height = "auto"; ta.style.height = Math.min(140, ta.scrollHeight) + "px"; }; fit(); ta.oninput = () => { V.chatDraft = ta.value; fit(); }; }
-  const c = $("#chat"); if (c && (chat.length || V.chatBusy)) { const last = c.lastElementChild; if (last) last.scrollIntoView({ block: "end" }); }
+  const c = $("#chat"); if (c && V.chatScroll) { V.chatScroll = false; const last = c.lastElementChild; if (last) last.scrollIntoView({ block: "end" }); }
 }
 function saveChat() { ls.set(K_CHAT, chat.slice(-60)); }
 
@@ -2040,7 +2072,7 @@ async function envoyer(q, imgs) {
   q = (q || "").trim(); if (!q || V.chatBusy) return;
   if (!navigator.onLine) { V.chatErr = "Pas de réseau : le coach a besoin d'internet. Tes séances, elles, marchent hors ligne."; render(); return; }
   chat.push({ role: "user", content: q, t: Date.now() }); saveChat();
-  V.chatDraft = ""; V.chatErr = ""; V.chatBusy = true; render();
+  V.chatDraft = ""; V.chatErr = ""; V.chatBusy = true; V.chatScroll = true; render();
   const hist = chat.slice(-24).map(m => ({ role: m.role, content: m.content }));
   while (hist.length && hist[0].role !== "user") hist.shift();
   if (imgs && imgs.length && hist.length) { const last = hist[hist.length - 1]; last.content = imgs.map(b => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: b } })).concat([{ type: "text", text: last.content }]); }
@@ -2086,7 +2118,7 @@ async function envoyer(q, imgs) {
       if (txt.trim()) { chat.push({ role: "assistant", content: txt, t: Date.now() }); saveChat(); }
     }
   }
-  V.chatBusy = false; chatCtl = null; render();
+  V.chatBusy = false; chatCtl = null; V.chatScroll = true; render();
 }
 document.addEventListener("click", ev => {
   const t = ev.target.closest("button"); if (!t) return;
