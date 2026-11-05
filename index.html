@@ -6,9 +6,10 @@
 <title>ATHLON</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ATHLON">
-<meta name="theme-color" content="#0B0C0E">
+<meta name="theme-color" content="#F5F5F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0C0E" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -329,6 +330,15 @@ h2.sec .ey{display:block;font-family:var(--f-body);font-size:10.5px;font-weight:
 .f-dot{min-width:34px;height:34px;border-radius:999px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--dim);padding:0 8px}
 .f-dot.ok{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 .f-dot.cur{border-color:var(--accent);color:var(--fg)}
+.f-last{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--raise);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--muted);margin-top:-6px}
+.f-last b{font-family:var(--f-serif);font-weight:600;font-size:15px;color:var(--fg);white-space:nowrap}
+.f-last .all{font-size:11.5px}
+.warm{background:var(--raise);border-radius:16px;padding:14px 16px;margin-top:14px}
+.warm .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.warm .c{display:flex;flex-wrap:wrap;gap:6px}
+.warm .c span{background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:7px 12px;font-family:var(--f-serif);font-weight:600;font-size:13.5px}
+.deload{border-left:2px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;padding:12px 14px;margin-top:16px;font-size:13.5px}
+.deload .row{margin-top:10px}
 button.f-dot{cursor:pointer;font-family:inherit}
 button.f-dot:disabled{cursor:default}
 .f-dot.ok{flex-direction:column;line-height:1.05;min-width:52px;height:46px;border-radius:14px}
@@ -539,6 +549,48 @@ h2.sec{font-family:var(--f-tech);font-size:17px;letter-spacing:.06em;text-transf
 .hd-ex .h b{font-weight:600}
 .hd-sets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .hd-sets span{background:var(--raise);border-radius:8px;padding:5px 9px;font-family:var(--f-serif);font-weight:600;font-size:13px}
+
+/* ===== Thème clair : suit l'iPhone (auto), ou forcé dans Profil ===== */
+@media (prefers-color-scheme: light){
+:root:not([data-theme="dark"]){
+  --bg:#F5F5F2; --surface:#FFFFFF; --raise:#EEEEEA; --sunk:#E9E9E5; --fg:#111315; --muted:#5F656B; --dim:#8A9096; --line:#E2E2DD; --line2:#D2D3CE;
+  --accent:#2E6BFF; --accent-hi:#1F55D6; --accent-soft:#E4ECFF;
+  --good:#1A8A4F; --good-soft:#DFF3E7; --warn:#A8700C; --warn-soft:#FBF1DC; --bad:#D33B40; --bad-soft:#FCE4E4;
+  --p5:#F2F2EE; --p2:#4A5055;
+  color-scheme:light;
+}
+:root:not([data-theme="dark"]) body{background:var(--bg)}
+:root:not([data-theme="dark"]) .note{color:var(--fg)}
+:root:not([data-theme="dark"]) .btn.danger{border-color:#E9B5B7}
+:root:not([data-theme="dark"]) .ex.done{border-color:#9FD5B5}
+:root:not([data-theme="dark"]) .set.ok input{border-color:#9FD5B5}
+:root:not([data-theme="dark"]) .tabs{background:rgba(250,250,248,.94)}
+:root:not([data-theme="dark"]) .rest-in{background:var(--surface)}
+:root:not([data-theme="dark"]) .b.reps{background:#E4ECFF;color:#1F55D6}
+:root:not([data-theme="dark"]) .compose{background:rgba(245,245,242,.92)}
+:root:not([data-theme="dark"]) .f-ghost{color:var(--raise)}
+:root:not([data-theme="dark"]) .plate.k5{box-shadow:inset 0 0 0 1px #C9CAC5}
+:root:not([data-theme="dark"]) .sheet-bg{background:rgba(20,22,25,.35)}
+}
+:root[data-theme="light"]{
+  --bg:#F5F5F2; --surface:#FFFFFF; --raise:#EEEEEA; --sunk:#E9E9E5; --fg:#111315; --muted:#5F656B; --dim:#8A9096; --line:#E2E2DD; --line2:#D2D3CE;
+  --accent:#2E6BFF; --accent-hi:#1F55D6; --accent-soft:#E4ECFF;
+  --good:#1A8A4F; --good-soft:#DFF3E7; --warn:#A8700C; --warn-soft:#FBF1DC; --bad:#D33B40; --bad-soft:#FCE4E4;
+  --p5:#F2F2EE; --p2:#4A5055;
+  color-scheme:light;
+}
+:root[data-theme="light"] body{background:var(--bg)}
+:root[data-theme="light"] .note{color:var(--fg)}
+:root[data-theme="light"] .btn.danger{border-color:#E9B5B7}
+:root[data-theme="light"] .ex.done{border-color:#9FD5B5}
+:root[data-theme="light"] .set.ok input{border-color:#9FD5B5}
+:root[data-theme="light"] .tabs{background:rgba(250,250,248,.94)}
+:root[data-theme="light"] .rest-in{background:var(--surface)}
+:root[data-theme="light"] .b.reps{background:#E4ECFF;color:#1F55D6}
+:root[data-theme="light"] .compose{background:rgba(245,245,242,.92)}
+:root[data-theme="light"] .f-ghost{color:var(--raise)}
+:root[data-theme="light"] .plate.k5{box-shadow:inset 0 0 0 1px #C9CAC5}
+:root[data-theme="light"] .sheet-bg{background:rgba(20,22,25,.35)}
 /* Appli autonome : zones sûres de l'iPhone, pas de rebond ni de zoom */
 html{-webkit-text-size-adjust:100%}
 body{margin:0;overscroll-behavior-y:none}
@@ -981,6 +1033,7 @@ function forme(f) {
 }
 function planExo(x, niveau, rang) {
   let charge = x.charge, series = x.series, note = "", sens = "";
+  if (enDecharge()) return { charge: arr(x.charge * 0.9, x.type), series: Math.max(2, Math.ceil(x.series / 2)), cible: x.repsCible ?? x.repsMin, note: "décharge", sens: "" };
   if (niveau === "basse") { charge = arr(x.charge * 0.92, x.type); series = Math.max(2, x.series - 1); note = "−8 % · −1 série"; }
   else if (niveau === "haute" && rang < 2) { series = x.series + 1; note = "+1 série"; sens = "up"; }
   return { charge, series, cible: x.repsCible ?? x.repsMin, note, sens };
@@ -998,6 +1051,7 @@ function chargeEff(x, kg) { return x.type === "poids_corps" ? (poidsActuel() || 
 function evaluer(x, d) {
   const faits = d.series.filter(s => s.fait).map(s => Number(s.reps) || 0);
   if (!faits.length) return { type: "skip", txt: "Non fait : objectif inchangé." };
+  if (draft && draft.deload) return { type: "neutre", txt: "Semaine de décharge : tes charges de référence ne bougent pas.", ch: { charge: x.charge, repsCible: x.repsCible ?? x.repsMin, echecs: x.echecs || 0, calib: x.calib ? true : undefined } };
   const used = chargeUtilisee(d), minR = Math.min(...faits), complet = faits.length >= d.series.length;
   const cible = x.repsCible ?? x.repsMin;
   const ch = { charge: x.charge, repsCible: cible, echecs: x.echecs || 0 };
@@ -1108,6 +1162,17 @@ document.addEventListener("click", ev => {
 const unSeul = x => /au-dessus de la tête haltère|sur les genoux/i.test((x && x.nom) || "");
 const parMain = x => !!x && x.type === "halteres" && !unSeul(x);
 const uKg = x => parMain(x) ? " kg/main" : " kg";
+/* Apparence : auto (réglage du téléphone), clair ou sombre */
+const K_THEME = "cdf-theme";
+function appliquerTheme() {
+  const t = ls.get(K_THEME) || "auto", r = document.documentElement;
+  if (t === "auto") r.removeAttribute("data-theme"); else r.setAttribute("data-theme", t);
+  const sombre = t === "dark" || (t === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", sombre ? "#0B0C0E" : "#F5F5F2"));
+}
+appliquerTheme();
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", appliquerTheme); } catch (e) {}
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-themeset]"); if (!b) return; ls.set(K_THEME, b.dataset.themeset); appliquerTheme(); render(); });
 /* ---------- rendu ---------- */
 function render() {
   $("#hdate").textContent = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
@@ -1156,6 +1221,7 @@ function vueAvantSeance() {
   return `
   <div style="margin-top:22px">${visuel(j.nom, "Séance " + (V.jour + 1) + " sur " + etat.jours.length, `≈ ${fmtMin(du.main)}<small>${texteExos(j)}</small>`)}</div>
 
+  ${bandeauDecharge()}
   <div style="margin-top:16px"><button class="btn primary big" data-act="start">Démarrer</button></div>
   <div class="label" style="text-align:center;margin:26px 0 10px">Forme du jour</div>
   <div class="fq" role="group" aria-label="Forme du jour">${[["basse", "Fatigué", "−"], ["normale", "Normal", "="], ["haute", "En forme", "+"]].map(([k, l, sym]) => `<button data-fq="${k}" aria-pressed="${f.niveau === k}"><b>${sym}</b>${l}</button>`).join("")}</div>
@@ -1178,7 +1244,7 @@ function vueAvantSeance() {
   </div>` : ""}</div>
   ${V.jour !== etat.prochain ? `<button class="more c" data-faire="${etat.prochain}">Revenir à la séance prévue</button>` : ""}
   <div class="label" style="margin:34px 0 10px">Compléments</div>
-  <div class="extras">${etat.extras.map(e => `<button class="xbtn" data-extra="${e.id}"><b>${esc(e.nom)}</b><span>${e.exos.length} exercices</span></button>`).join("")}<button class="xbtn" data-act="cardio"><b>Cardio</b><span>tapis, vélo…</span></button></div>`;
+  <div class="extras">${etat.extras.map(e => `<button class="xbtn" data-extra="${e.id}"><b>${esc(e.nom)}</b><span>${e.exos.length} exercices</span></button>`).join("")}<button class="xbtn" data-act="cardio"><b>Cardio</b><span>tapis, vélo…</span></button></div>${rappelSauvegarde()}`;
 }
 
 function jauge(f, msg) {
@@ -1255,10 +1321,12 @@ function vueFocus() {
     ${vu("fmeta") ? `<div class="f-meta">Fourchette ${x.repsMin}–${x.repsMax} reps · repos ${Math.round(x.repos / 60 * 10) / 10} min${x.calib ? " · charge estimée : mets celle que tu utilises vraiment, elle servira de base" : ""}</div>` : ""}
   </div>
   ${V.swap ? panneauRemplacer(ei, x) : ""}
+  ${si === 0 && !d.series.some(z => z.fait) ? blocEchauffement(ei, d, x) : ""}
   <div id="focus-rest"></div>
   ${si >= 0 ? `
   <div class="f-card">
     <div class="f-set"><span class="label">Série</span><b>${si + 1} <span class="muted">sur ${d.series.length}</span></b></div>
+    ${ligneDerniere(x, si)}
     <div class="f-rep"><button data-freps="-1" aria-label="Une rep de moins">−</button><div class="f-big num">${repsCour}<small>reps · objectif ${d.cible}</small></div><button data-freps="1" aria-label="Une rep de plus">+</button></div>
     <div class="f-load"><span class="at">à</span><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : parMain(x) ? "kg/main" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div></div>
     ${x.type === "barre" && vu("disques") ? `<div class="plates" style="justify-content:center">${pl.length ? "Par côté" : "Barre seule"} ${pl.map(p => `<span class="plate k${p >= 2.5 && p < 5 ? 2 : p < 2.5 ? 1 : p}">${nf(p)}</span>`).join("")}</div>` : ""}
@@ -1521,7 +1589,11 @@ function vueCoach() {
 
 function vueProfil() {
   const pes = etat.pesees.slice().sort((a, b) => a.d < b.d ? 1 : -1);
+  const th = ls.get(K_THEME) || "auto";
   return `
+  <h2 class="sec">Apparence</h2>
+  <div class="fq" role="group" aria-label="Apparence">${[["auto", "Auto"], ["light", "Clair"], ["dark", "Sombre"]].map(([k, l]) => `<button data-themeset="${k}" aria-pressed="${th === k}">${l}</button>`).join("")}</div>
+  <p class="muted" style="margin:8px 0 0;font-size:12.5px">${th === "auto" ? "Suit le mode clair ou sombre de ton téléphone." : th === "light" ? "Toujours en clair." : "Toujours en sombre."}</p>
   <h2 class="sec">Objectif</h2>
   <div class="panel stack">
     <div class="grid2">
@@ -1546,6 +1618,8 @@ function vueProfil() {
   <h2 class="sec">Sauvegarde</h2>
   <div class="panel stack">
     <p class="muted" style="margin:0;font-size:13.5px">Copie tes données pour les garder ou me les envoyer dans le chat. Tu peux aussi coller ici un programme que je t'ai préparé.</p>
+    <div class="row"><button class="btn sm primary" data-act="backup">Enregistrer une sauvegarde</button><label class="btn sm" for="restoreFile" style="cursor:pointer">Restaurer un fichier<input id="restoreFile" type="file" accept="application/json,.json" style="display:none"></label></div>
+    <p class="muted" style="margin:0;font-size:12.5px">${derniereSauvegarde() ? "Dernière sauvegarde : " + derniereSauvegarde() + "." : "Aucune sauvegarde pour l'instant."} Le fichier contient ton programme, tes séances et ta nutrition (pas les photos). Garde-le dans Fichiers ou iCloud Drive.</p>
     <div class="row"><button class="btn sm" data-act="export">Copier mes données</button></div>
     <div class="field"><label class="label" for="importTxt">Importer (JSON)</label><textarea id="importTxt" rows="3" placeholder="Colle ici les données"></textarea></div>
     <div class="row"><button class="btn sm" data-act="import">Importer</button><span class="muted" style="font-size:13px">${esc(V.importMsg)}</span></div>
@@ -1712,7 +1786,7 @@ function demarrer() {
     poids: parseFloat(String(V.poidsJour).replace(",", ".")) || null,
     exos: j.exos.map(id => { const x = etat.exos[id], r = j.exos.filter(z => !etat.exos[z].opt).indexOf(id), p = planExo(x, x.opt ? "normale" : f.niveau, r); return { exoId: id, charge: p.charge, prevue: p.charge, cible: p.cible, ressenti: "", series: Array.from({ length: p.series }, () => ({ reps: "", fait: false })) }; })
   };
-  draft.cur = 0; draft.vue = "focus"; draft.focus = j.focus || null;
+  draft.cur = 0; draft.vue = "focus"; draft.focus = j.focus || null; draft.deload = enDecharge();
   saveDraft(); garderEcran(); render(); window.scrollTo(0, 0);
 }
 function enregistrer() {
@@ -1722,7 +1796,7 @@ function enregistrer() {
     const ev = evaluer(x, d);
     s.exos.push({ exoId: x.id, nom: x.nom, groupe: x.groupe, type: x.type, charge: chargeUtilisee(d), kgs: d.series.filter(z => z.fait).map(z => z.kg ?? (Number(d.charge) || 0)), reps: d.series.filter(z => z.fait).map(z => Number(z.reps) || 0), cible: d.cible, ressenti: d.ressenti, verdict: ev.type });
     if (ev.ch) { x.charge = ev.ch.charge; x.repsCible = ev.ch.repsCible; x.echecs = ev.ch.echecs; if (ev.ch.calib === false) delete x.calib; }
-    const nv = reposAppris(x, d); if (nv) { if (!x.reposRef) x.reposRef = REPOS[x.nom] || x.repos; x.repos = nv; }
+    const nv = draft.deload ? null : reposAppris(x, d); if (nv) { if (!x.reposRef) x.reposRef = REPOS[x.nom] || x.repos; x.repos = nv; }
   }
   if (draft.poids) { etat.pesees = etat.pesees.filter(p => p.d !== draft.date); etat.pesees.push({ d: draft.date, kg: draft.poids }); }
   const idx = etat.jours.findIndex(j => j.id === draft.jourId);
@@ -2330,6 +2404,99 @@ document.addEventListener("click", ev => {
   if (ds.histodelask) { V.delSeance = ds.histodelask; ouvrirSeance(ds.histodelask); return; }
   if (ds.histodelno) { V.delSeance = null; ouvrirSeance(ds.histodelno); return; }
   if (ds.histodel) { supprimerSeance(ds.histodel); V.delSeance = null; fermerSheet(); render(); return; }
+});
+
+
+/* ---------- « la dernière fois » ---------- */
+function derniereFoisExo(exoId) {
+  for (const s of seances) {
+    if (draft && s.ts >= draft.debut) continue;
+    const e = (s.exos || []).find(q => q.exoId === exoId && (q.reps || []).length);
+    if (e) return { date: s.date, reps: e.reps, kgs: e.kgs || e.reps.map(() => e.charge), type: e.type, nom: e.nom };
+  }
+  return null;
+}
+function ligneDerniere(x, si) {
+  const l = derniereFoisExo(x.id); if (!l) return "";
+  const k = Math.min(si, l.reps.length - 1), kg = l.kgs[k];
+  const fk = v => x.type === "poids_corps" ? (v ? "+" + nf(v) : "PDC") : nf(v);
+  const u = x.type === "poids_corps" && !kg ? "" : uKg(x);
+  return `<div class="f-last"><span>Dernière fois · ${dCourt(l.date)}<br><span class="all num">${l.reps.join(" · ")} reps</span></span><b class="num">${l.reps[k]} × ${fk(kg)}${u}</b></div>`;
+}
+
+/* ---------- échauffement ---------- */
+function blocEchauffement(ei, d, x) {
+  if (x.court || x.opt || x.type === "poids_corps" || draft.warm?.[d.exoId]) return "";
+  const avant = draft.exos.slice(0, ei).map(z => etat.exos[z.exoId]).filter(Boolean);
+  if (avant.some(z => z.groupe === x.groupe && !z.court)) return "";
+  const c = Number(d.charge) || 0; if (c <= 0) return "";
+  let paliers;
+  if (x.type === "barre") {
+    const b = etat.profil.barre || 20;
+    paliers = c <= 40 ? [[10, b]] : [[10, b], [8, c * 0.5], [5, c * 0.7], [2, c * 0.85]];
+  } else paliers = [[10, c * 0.5], [5, c * 0.75]];
+  const vus = new Set(), liste = [];
+  paliers.forEach(([r, kg]) => { const v = Math.max(x.type === "barre" ? (etat.profil.barre || 20) : 0, arr(kg, x.type)); if (v < c && !vus.has(v)) { vus.add(v); liste.push([r, v]); } });
+  if (!liste.length) return "";
+  return `<div class="warm"><div class="h"><span class="label">Échauffement · avant ${nf(c)}${uKg(x)}</span><button class="link" data-warmok="${d.exoId}">Fait</button></div>
+    <div class="c">${liste.map(([r, v]) => `<span class="num">${r} × ${nf(v)}${uKg(x).replace(" kg/main", " kg")}</span>`).join("")}</div>
+    <p class="muted" style="margin:8px 0 0;font-size:11.5px">Repos court entre les paliers. Ces séries ne comptent pas dans ta séance.</p></div>`;
+}
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-warmok]"); if (!b || !draft) return; draft.warm = draft.warm || {}; draft.warm[b.dataset.warmok] = true; saveDraft(); render(); });
+
+/* ---------- semaine de décharge ---------- */
+function enDecharge() { return !!(etat.deload && etat.deload.fin && today() <= etat.deload.fin); }
+function debutCycle() {
+  if (etat.cycleDebut) return etat.cycleDebut;
+  const m = seances.filter(s => !s.court && !s.cardio).map(s => s.date).sort()[0];
+  return m || today();
+}
+function bandeauDecharge() {
+  if (enDecharge()) return `<div class="deload"><b>Semaine de décharge</b> jusqu'au ${dCourt(etat.deload.fin)} : moitié des séries, charges −10 %. Tes charges de référence restent intactes.<div class="row"><button class="btn sm" data-act="deload-stop">Arrêter la décharge</button></div></div>`;
+  const sem = Math.floor((parseD(today()) - parseD(debutCycle())) / (7 * 864e5));
+  const recents = seances.filter(s => !s.court && !s.cardio).slice(0, 4), fatigue = recents.filter(s => s.ressentiFin === "dur" || s.ressentiFin === "epuise").length;
+  const plus = etat.deloadPlusTard && today() < etat.deloadPlusTard;
+  if (plus || seances.filter(s => !s.court && !s.cardio).length < 8) return "";
+  if (sem < 7 && !(sem >= 4 && fatigue >= 3)) return "";
+  return `<div class="deload"><b>${sem >= 7 ? sem + " semaines d'entraînement" : "Beaucoup de séances dures en ce moment"}</b> : une semaine de décharge est conseillée pour récupérer et repartir plus fort.<div class="row"><button class="btn sm primary" data-act="deload-go">Lancer la décharge</button><button class="btn sm" data-act="deload-later">Plus tard</button></div></div>`;
+}
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  const a = b.dataset.act;
+  if (a === "deload-go") { const f = parseD(today()); f.setDate(f.getDate() + 6); etat.deload = { debut: today(), fin: ymd(f) }; etat.cycleDebut = ymd(new Date(f.getTime() + 864e5)); saveEtat(true); render(); }
+  else if (a === "deload-stop") { etat.deload = null; etat.cycleDebut = today(); saveEtat(true); render(); }
+  else if (a === "deload-later") { const f = parseD(today()); f.setDate(f.getDate() + 7); etat.deloadPlusTard = ymd(f); saveEtat(true); render(); }
+});
+
+/* ---------- sauvegarde dans un fichier ---------- */
+const K_BACKUP = "cdf-sauvegarde";
+function derniereSauvegarde() { const d = ls.get(K_BACKUP); return d ? dCourt(d) : ""; }
+function rappelSauvegarde() {
+  if (mode === "db" || seances.length < 3) return "";
+  const d = ls.get(K_BACKUP), jours = d ? Math.floor((parseD(today()) - parseD(d)) / 864e5) : null;
+  if (jours != null && jours < 7) return "";
+  return `<div class="note info" style="margin-top:26px">${jours == null ? "Tu n'as jamais sauvegardé tes données." : `Dernière sauvegarde il y a ${jours} jours.`} Elles ne sont que sur ce téléphone.<div class="row" style="margin-top:10px"><button class="btn sm primary" data-act="backup">Sauvegarder maintenant</button></div></div>`;
+}
+async function sauvegarder() {
+  const data = { app: "ATHLON", version: 1, date: new Date().toISOString(), etat, seances, nutrition: typeof nutri !== "undefined" ? nutri : null };
+  const nom = "athlon-sauvegarde-" + today() + ".json";
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  let ok = false;
+  try { const f = new File([blob], nom, { type: "application/json" }); if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: nom }); ok = true; } } catch (e) { if (e && e.name === "AbortError") return; }
+  if (!ok) { try { const u = URL.createObjectURL(blob), a = document.createElement("a"); a.href = u; a.download = nom; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); ok = true; } catch (e) {} }
+  if (ok) { ls.set(K_BACKUP, today()); V.importMsg = "Sauvegarde créée."; render(); }
+}
+function restaurer(o) {
+  const e = normaliser(o.etat || o); if (!Object.keys(e.exos).length) throw 0;
+  etat = e; saveEtat(true);
+  if (Array.isArray(o.seances)) { const ids = new Set(seances.map(s => s.id)); o.seances.filter(s => s && s.id && !ids.has(s.id)).forEach(s => saveSeance(s)); }
+  if (o.nutrition && o.nutrition.jours && typeof nutri !== "undefined") { Object.assign(nutri.jours, o.nutrition.jours); nutri.recents = o.nutrition.recents || nutri.recents; ls.set(K_NUTRI, nutri); }
+}
+document.addEventListener("click", ev => { const b = ev.target.closest("button"); if (b && b.dataset.act === "backup") sauvegarder(); });
+document.addEventListener("change", ev => {
+  if (ev.target.id !== "restoreFile") return;
+  const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; if (!f) return;
+  f.text().then(t => { try { restaurer(JSON.parse(t)); V.importMsg = "Sauvegarde restaurée."; V.jour = null; } catch (e) { V.importMsg = "Fichier non reconnu : choisis un fichier de sauvegarde ATHLON."; } render(); });
 });
 
 /* ---------- coach ---------- */
