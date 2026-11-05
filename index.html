@@ -807,6 +807,25 @@ function migrer() {
     tous.filter(z => /^Shrug/.test(z.nom)).forEach(z => { z.court = true; z.repos = 90; z.reposRef = 90; });
     etat.v = 10; saveEtat(true);
   }
+  if ((etat.v || 1) < 11) {
+    /* Mollets uniquement à la presse : bilatéral (Push A, Jambes) et unilatéral (Pull A, Push B) */
+    const tous = Object.values(etat.exos);
+    let bi = tous.find(x => x.nom === "Mollets à la presse");
+    if (!bi) { bi = { id: uid(), nom: "Mollets à la presse", groupe: "Mollets", type: "machine", charge: 160, repsMin: 12, repsMax: 20, series: 4, inc: 10, repos: 90, repsCible: 12, echecs: 0, calib: true }; etat.exos[bi.id] = bi; }
+    bi.series = 4; bi.court = true; bi.repos = 90; bi.reposRef = 90;
+    let uni = tous.find(x => x.nom === "Mollets à la presse unilatéral");
+    if (!uni) { uni = { id: uid(), nom: "Mollets à la presse unilatéral", groupe: "Mollets", type: "machine", charge: arr((bi.charge || 160) * 0.5, "machine"), repsMin: 10, repsMax: 15, series: 3, inc: 5, repos: 90, reposRef: 90, repsCible: 10, echecs: 0, calib: true, court: true }; etat.exos[uni.id] = uni; }
+    const cible = { "Push A": bi.id, "Jambes": bi.id, "Pull A": uni.id, "Push B": uni.id };
+    etat.jours.forEach(j => {
+      const k = Object.keys(cible).find(c => j.nom.startsWith(c)); if (!k) return;
+      const nouv = cible[k];
+      j.exos = j.exos.filter(id => !(etat.exos[id] && etat.exos[id].groupe === "Mollets") || id === nouv);
+      if (!j.exos.includes(nouv)) j.exos.push(nouv);
+      j.exos = j.exos.filter(id => id !== nouv).concat([nouv]);
+      j.focus = nouv;
+    });
+    etat.v = 11; saveEtat(true);
+  }
   if (!etat.nutri) { normaliser(etat); saveEtat(true); }
 }
 /* Repos du moment : base de l'exercice, ajustée à la série et à la forme */
