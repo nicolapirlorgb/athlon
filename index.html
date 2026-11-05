@@ -1104,6 +1104,10 @@ document.addEventListener("click", ev => {
   if (q) { V.forme = { basse: { sommeil: 2, energie: 2, courbatures: 4 }, normale: { sommeil: 3, energie: 3, courbatures: 3 }, haute: { sommeil: 5, energie: 5, courbatures: 1 } }[q.dataset.fq]; render(); }
 });
 
+/* Haltères : le poids affiché est celui d'UN haltère (par main) */
+const unSeul = x => /au-dessus de la tête haltère|sur les genoux/i.test((x && x.nom) || "");
+const parMain = x => !!x && x.type === "halteres" && !unSeul(x);
+const uKg = x => parMain(x) ? " kg/main" : " kg";
 /* ---------- rendu ---------- */
 function render() {
   $("#hdate").textContent = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
@@ -1146,7 +1150,7 @@ function vueAvantSeance() {
   const du = dureePlan(j, f.niveau);
   const li = (id, r) => {
     const x = etat.exos[id], p = planExo(x, x.opt ? "normale" : f.niveau, r);
-    const cible = `${p.series} × ${p.cible}${x.type === "poids_corps" && !p.charge ? "" : " · " + (x.type === "poids_corps" ? "+" : "") + nf(p.charge) + " kg"}`;
+    const cible = `${p.series} × ${p.cible}${x.type === "poids_corps" && !p.charge ? "" : " · " + (x.type === "poids_corps" ? "+" : "") + nf(p.charge) + uKg(x)}`;
     return `<li><span class="ix">${id === j.focus ? "★" : String(r + 1).padStart(2, "0")}</span><span class="n">${esc(x.nom)}${id === j.focus ? '<span class="tag" style="background:var(--accent-soft);color:var(--accent-hi)">focus</span>' : ""}${vu("plan") ? `<small class="muted" style="display:block;font-size:12px;margin-top:3px">${esc(x.groupe)} · ${x.repsMin}–${x.repsMax} reps${x.calib ? " · à calibrer" : ""}${p.note ? " · " + p.note : ""}</small>` : ""}</span><span class="t num">${cible}</span></li>`;
   };
   return `
@@ -1256,7 +1260,7 @@ function vueFocus() {
   <div class="f-card">
     <div class="f-set"><span class="label">Série</span><b>${si + 1} <span class="muted">sur ${d.series.length}</span></b></div>
     <div class="f-rep"><button data-freps="-1" aria-label="Une rep de moins">−</button><div class="f-big num">${repsCour}<small>reps · objectif ${d.cible}</small></div><button data-freps="1" aria-label="Une rep de plus">+</button></div>
-    <div class="f-load"><span class="at">à</span><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div></div>
+    <div class="f-load"><span class="at">à</span><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : parMain(x) ? "kg/main" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div></div>
     ${x.type === "barre" && vu("disques") ? `<div class="plates" style="justify-content:center">${pl.length ? "Par côté" : "Barre seule"} ${pl.map(p => `<span class="plate k${p >= 2.5 && p < 5 ? 2 : p < 2.5 ? 1 : p}">${nf(p)}</span>`).join("")}</div>` : ""}
     <button class="btn primary big" data-act="f-ok">Série validée</button>
     ${bullesSeries(ei, d, si, x)}
@@ -1312,7 +1316,7 @@ function validerSerie(ei, si) {
     const r = reposIntelligent(x, d, Number(s.reps) || 0, si, fini ? etat.exos[draft.exos[suiv].exoId] : null);
     const ns = d.series.findIndex(z => !z.fait);
     let nx;
-    if (ns >= 0) nx = `Série ${ns + 1} : ${d.cible} reps à ${x.type === "poids_corps" ? "+" : ""}${nf(Number(d.charge) || 0)} kg`;
+    if (ns >= 0) nx = `Série ${ns + 1} : ${d.cible} reps à ${x.type === "poids_corps" ? "+" : ""}${nf(Number(d.charge) || 0)}${uKg(x)}`;
     else { const ds2 = draft.exos[suiv], xs = etat.exos[ds2.exoId]; nx = `Ensuite : ${xs.nom} · ${ds2.series.length} × ${ds2.cible}`; }
     lancerRepos(r.sec, nx, r.why, fini ? -1 : ei);
   }
@@ -1333,7 +1337,7 @@ function carteExo(d, ei) {
   return `<article class="ex ${done ? "done" : ""} ${x.opt ? "opt" : ""}">
     <div class="exh"><div><div class="nm">${esc(x.nom)}</div><div class="gp">${esc(x.groupe)} · fourchette ${x.repsMin}–${x.repsMax} · repos ${Math.round(x.repos / 60 * 10) / 10} min</div></div>
       <div class="target num">${d.series.length} × ${d.cible}<small>objectif</small></div></div>
-    <div class="load"><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div>
+    <div class="load"><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : parMain(x) ? "kg/main" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div>
       ${Number(d.charge) !== d.prevue ? `<span class="muted" style="font-size:12px">prévu ${nf(d.prevue)} kg</span>` : ""}</div>
     ${plHtml}
     ${x.calib ? `<div class="calib-note">Charge estimée. Règle-la sur ce que tu utilises vraiment : cette séance sert de base.</div>` : ""}
@@ -1346,7 +1350,7 @@ function carteExo(d, ei) {
 function vueProgramme() {
   const ro = vu("reorg");
   const ligneExo = (id, xi, ji) => { const x = etat.exos[id]; return `<li>
-        <button class="n" data-edit="${id}" data-j="${ji}">${esc(x.nom)}${etat.jours[ji] && etat.jours[ji].focus === id ? '<span class="tag" style="background:var(--accent-soft);color:var(--accent-hi)">focus</span>' : ""}${x.opt ? '<span class="tag" style="background:var(--sunk);color:var(--muted)">optionnel</span>' : ""}<small class="num">${x.series} × ${x.repsMin}–${x.repsMax} · ${x.type === "poids_corps" ? (x.charge ? "+" + nf(x.charge) + " kg" : "PDC") : nf(x.charge) + " kg"}</small></button>
+        <button class="n" data-edit="${id}" data-j="${ji}">${esc(x.nom)}${etat.jours[ji] && etat.jours[ji].focus === id ? '<span class="tag" style="background:var(--accent-soft);color:var(--accent-hi)">focus</span>' : ""}${x.opt ? '<span class="tag" style="background:var(--sunk);color:var(--muted)">optionnel</span>' : ""}<small class="num">${x.series} × ${x.repsMin}–${x.repsMax} · ${x.type === "poids_corps" ? (x.charge ? "+" + nf(x.charge) + uKg(x) : "PDC") : nf(x.charge) + uKg(x)}</small></button>
         ${ro ? `<span class="ctr"><button class="icn" data-xmove="${ji}-${xi}" data-d="-1" aria-label="Monter">${I.up}</button><button class="icn" data-xmove="${ji}-${xi}" data-d="1" aria-label="Descendre">${I.down}</button></span>` : "<span></span>"}</li>`; };
   return `
   <div class="row" style="justify-content:space-between;align-items:flex-end"><h2 class="sec">Séances</h2>${plus("reorg", "Modifier", "Terminé")}</div>
@@ -1445,7 +1449,7 @@ function vueProgres() {
     <div class="row" style="justify-content:space-between;margin:14px 0 4px;align-items:flex-end"><div class="big num">${h.length ? nf(h[h.length - 1].y) : "—"}<small>kg 1RM estimé</small></div>${deltaHtml}</div>
     ${courbe(h, "1RM estimé")}
     ${plus("force", "Historique")}
-    ${h.length && vu("force") ? `<div style="overflow-x:auto;margin-top:4px"><table class="tbl num"><thead><tr><th>Date</th><th>Charge</th><th>Reps</th></tr></thead><tbody>${h.slice(-5).reverse().map(r => `<tr><td>${dCourt(r.x)}</td><td>${r.type === "poids_corps" ? "+" : ""}${nf(r.charge)} kg</td><td>${r.reps.join(" · ")}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    ${h.length && vu("force") ? `<div style="overflow-x:auto;margin-top:4px"><table class="tbl num"><thead><tr><th>Date</th><th>Charge</th><th>Reps</th></tr></thead><tbody>${h.slice(-5).reverse().map(r => `<tr><td>${dCourt(r.x)}</td><td>${r.type === "poids_corps" ? "+" : ""}${nf(r.charge)}${parMain(x) ? " kg/main" : " kg"}</td><td>${r.reps.join(" · ")}</td></tr>`).join("")}</tbody></table></div>` : ""}
   </div>
 
   ${plus("vol", "Volume par muscle (7 jours)")}
@@ -1659,7 +1663,7 @@ function ouvrirEdition(id, ji) {
         <div class="field"><label class="label" for="f-type">Matériel</label><select id="f-type">${Object.entries(TYPES).map(([k, l]) => `<option value="${k}" ${k === x.type ? "selected" : ""}>${l}</option>`).join("")}</select></div>
       </div>
       <div class="grid2">
-        <div class="field"><label class="label" for="f-charge">Charge actuelle (kg)</label><input id="f-charge" class="num" inputmode="decimal" value="${nf(x.charge)}"></div>
+        <div class="field"><label class="label" for="f-charge">Charge actuelle (${parMain(x) ? "kg par main" : "kg"})</label><input id="f-charge" class="num" inputmode="decimal" value="${nf(x.charge)}"></div>
         <div class="field"><label class="label" for="f-cible">Reps visées</label><input id="f-cible" class="num" inputmode="numeric" value="${x.repsCible}"></div>
       </div>
       <div class="grid3">
@@ -2073,7 +2077,7 @@ function optionsRemplacement(x) {
   const deja = Object.values(etat.exos).filter(z => z.groupe === x.groupe && z.id !== x.id && !pris.has(z.id));
   const noms = new Set(Object.values(etat.exos).map(z => z.nom));
   const nouveaux = (VARIANTES[x.groupe] || []).filter(v => !noms.has(v[0])).map(v => ({ nouveau: true, nom: v[0], type: v[1], repsMin: v[2], repsMax: v[3] }));
-  return deja.map(z => ({ id: z.id, nom: z.nom, info: `${z.type === "poids_corps" ? (z.charge ? "+" + nf(z.charge) : "PDC") : nf(z.charge)}${z.type === "poids_corps" && !z.charge ? "" : " kg"}` })).concat(nouveaux.map(v => ({ ...v, info: "nouveau" })));
+  return deja.map(z => ({ id: z.id, nom: z.nom, info: `${z.type === "poids_corps" ? (z.charge ? "+" + nf(z.charge) : "PDC") : nf(z.charge)}${z.type === "poids_corps" && !z.charge ? "" : uKg(z)}` })).concat(nouveaux.map(v => ({ ...v, info: "nouveau" })));
 }
 function panneauRemplacer(ei, x) {
   const opts = optionsRemplacement(x);
@@ -2140,7 +2144,7 @@ function bullesSeries(ei, d, si, x) {
   return dots + `<div class="fedit">
     <div class="label">Corriger la série ${ed.i + 1}</div>
     <div class="r"><span class="label">Reps</span><div class="stepper"><button data-fer="-1" aria-label="Une rep de moins">−</button><input class="num" readonly value="${ed.reps}" aria-label="Répétitions"><button data-fer="1" aria-label="Une rep de plus">+</button></div></div>
-    <div class="r"><span class="label">Poids</span><div class="stepper"><button data-fek="-1" aria-label="Moins lourd">−</button><input id="feKg" class="num" inputmode="decimal" value="${nf(ed.kg)}" aria-label="Poids en kg"><span class="u">${pdc ? "kg lest" : "kg"}</span><button data-fek="1" aria-label="Plus lourd">+</button></div></div>
+    <div class="r"><span class="label">Poids</span><div class="stepper"><button data-fek="-1" aria-label="Moins lourd">−</button><input id="feKg" class="num" inputmode="decimal" value="${nf(ed.kg)}" aria-label="Poids en kg"><span class="u">${pdc ? "kg lest" : parMain(x) ? "kg/main" : "kg"}</span><button data-fek="1" aria-label="Plus lourd">+</button></div></div>
     <label class="keep" for="feAll"><input id="feAll" type="checkbox" ${ed.all ? "checked" : ""}> Ce poids pour toutes les séries de l'exercice</label>
     <div class="row"><button class="btn sm primary" data-act="fe-save">Enregistrer</button><button class="btn sm" data-act="fe-cancel">Annuler</button></div>
   </div>`;
@@ -2202,7 +2206,7 @@ function vueCardio() {
 }
 function tonnageSeance(s) {
   let t = 0;
-  (s.exos || []).forEach(e => { const kgs = e.kgs || []; (e.reps || []).forEach((r, i) => { let kg = kgs[i] ?? e.charge ?? 0; if (e.type === "poids_corps") kg += (s.poids || poidsAu(s.date)); else if (e.type === "halteres") kg *= 2; t += kg * r; }); });
+  (s.exos || []).forEach(e => { const kgs = e.kgs || []; (e.reps || []).forEach((r, i) => { let kg = kgs[i] ?? e.charge ?? 0; if (e.type === "poids_corps") kg += (s.poids || poidsAu(s.date)); else if (parMain(e)) kg *= 2; t += kg * r; }); });
   return Math.round(t);
 }
 function vueRecap(s) {
@@ -2236,8 +2240,8 @@ function vueRecap(s) {
   ${s.ressentiFin ? `<p style="text-align:center;margin:10px 0 0;font-size:13.5px"><span class="muted">Ressenti :</span> ${{ facile: "Facile", ok: "Correct", dur: "Dur", epuise: "Épuisé" }[s.ressentiFin]}${s.ressentiFin === "epuise" ? `<br><span class="muted" style="font-size:12.5px">Mise sur le sommeil et les protéines ce soir. Si ça revient plusieurs fois, choisis « Fatigué » au départ de la prochaine séance.</span>` : ""}</p>` : ""}
   <div class="rc-grid"><div><b class="num">${s.duree}</b><span>min</span></div><div><b class="num">${ex.filter(e => (e.reps || []).length).length}</b><span>exos</span></div><div><b class="num">${nS}</b><span>séries</span></div><div><b class="num">${nR}</b><span>reps</span></div></div>
   ${recs.length ? `<div class="label" style="margin-top:22px">Records</div><div class="rc-list">${recs.map(r => `<div><span>${esc(r.nom)}</span><b class="pr num">${nf(r.v)} kg 1RM est.</b></div>`).join("")}</div>` : ""}
-  ${up.length ? `<div class="label" style="margin-top:22px">La prochaine fois, ça monte</div><div class="rc-list">${up.map(u => `<div><span>${esc(u.nom)}</span><b class="num">${nf(u.kg)} kg</b></div>`).join("")}</div>` : ""}
-  <p class="muted" style="font-size:11.5px;text-align:center;margin:14px 0 0">Total = poids × reps de chaque série. Les haltères comptent par paire, le poids du corps est inclus.</p>
+  ${up.length ? `<div class="label" style="margin-top:22px">La prochaine fois, ça monte</div><div class="rc-list">${up.map(u => `<div><span>${esc(u.nom)}</span><b class="num">${nf(u.kg)}${uKg(etat.exos[ex.find(e => e.nom === u.nom)?.exoId])}</b></div>`).join("")}</div>` : ""}
+  <p class="muted" style="font-size:11.5px;text-align:center;margin:14px 0 0">Total = poids × reps de chaque série. Haltères : poids par main × 2. Poids du corps inclus.</p>
   <div style="margin-top:22px"><button class="btn primary big" data-act="recap-ok">Terminer</button></div>`;
 }
 document.addEventListener("click", ev => {
@@ -2308,7 +2312,7 @@ function ouvrirSeance(id) {
   const corps = s.cardio ? `<div class="rc-grid" style="grid-template-columns:repeat(3,1fr)"><div><b class="num">${s.duree}</b><span>min</span></div><div><b class="num">${s.kcal}</b><span>kcal</span></div>${s.cardio.type.startsWith("tapis") ? `<div><b class="num">${nf(Math.round(s.cardio.vitesse * s.cardio.duree / 60 * 10) / 10)}</b><span>km</span></div>` : `<div><b>${{ legere: "Légère", moderee: "Modérée", soutenue: "Soutenue" }[s.cardio.intensite] || ""}</b><span>intensité</span></div>`}</div>`
     : `<div class="rc-grid"><div><b class="num">${fmtT(s.tonnage ?? tonnageSeance(s))}</b><span>soulevés</span></div><div><b class="num">${s.duree || 0}</b><span>min</span></div><div><b class="num">${ex.reduce((a, e) => a + e.reps.length, 0)}</b><span>séries</span></div><div><b>${s.ressentiFin ? RESS[s.ressentiFin] : "—"}</b><span>ressenti</span></div></div>
     <div style="margin-top:8px">${ex.map(e => { const kgs = e.kgs || []; return `<div class="hd-ex"><div class="h"><b>${esc(e.nom)}</b>${lbl[e.verdict] ? `<span class="b ${e.verdict}" style="font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;padding:3px 6px">${lbl[e.verdict]}</span>` : ""}</div>
-      <div class="hd-sets">${e.reps.map((r, i) => { const kg = kgs[i] ?? e.charge; return `<span class="num">${r} × ${e.type === "poids_corps" ? (kg ? "+" + nf(kg) : "PDC") : nf(kg)}${e.type === "poids_corps" && !kg ? "" : " kg"}</span>`; }).join("")}</div></div>`; }).join("") || `<p class="muted">Aucune série enregistrée.</p>`}</div>`;
+      <div class="hd-sets">${e.reps.map((r, i) => { const kg = kgs[i] ?? e.charge; return `<span class="num">${r} × ${e.type === "poids_corps" ? (kg ? "+" + nf(kg) : "PDC") : nf(kg)}${e.type === "poids_corps" && !kg ? "" : uKg(e)}</span>`; }).join("")}</div></div>`; }).join("") || `<p class="muted">Aucune série enregistrée.</p>`}</div>`;
   $("#sheet").innerHTML = `<div class="sheet-bg" data-close><div class="sheet">
     <div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="label">${d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div><h3 style="margin-top:6px">${esc(s.jour)}</h3></div><button class="icn" data-close aria-label="Fermer">${I.x}</button></div>
     ${corps}
