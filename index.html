@@ -591,6 +591,58 @@ h2.sec{font-family:var(--f-tech);font-size:17px;letter-spacing:.06em;text-transf
 :root[data-theme="light"] .f-ghost{color:var(--raise)}
 :root[data-theme="light"] .plate.k5{box-shadow:inset 0 0 0 1px #C9CAC5}
 :root[data-theme="light"] .sheet-bg{background:rgba(20,22,25,.35)}
+
+/* ===== écran de série plein écran, sans défilement ===== */
+body.immersif{overflow:hidden;overscroll-behavior:none}
+body.immersif .top,body.immersif .livery,body.immersif .tabs{display:none}
+.fx{position:fixed;inset:0;z-index:25;background:var(--bg);touch-action:manipulation;overscroll-behavior:none}
+.fx-in{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(16px,env(safe-area-inset-left,0px));gap:clamp(8px,1.6dvh,16px)}
+.fx-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;flex:none}
+.fx-ic{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--surface)}
+.fx-ic svg{width:20px;height:20px}
+.fx-mid{display:flex;flex-direction:column;gap:6px;align-items:center;min-width:0}
+.fx-mid .f-prog{margin:0;width:100%}
+.fx-mid #elapsed{font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.fx-head{flex:none;min-width:0}
+.fx-name{font-family:var(--f-tech);font-weight:400;text-transform:uppercase;font-size:clamp(19px,3dvh,26px);line-height:1.15;margin:6px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance}
+.fx-head .f-meta{margin-top:4px;font-size:12px}
+.fx-chips{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden;margin-top:10px}
+.fx-chip{flex:none;display:inline-flex;align-items:baseline;gap:6px;background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:6px 11px;font-size:12px;white-space:nowrap}
+.fx-chip i{font-style:normal;color:var(--muted);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+.fx-chip b{font-weight:600}
+.fx-chip.hl{border-color:var(--accent);background:var(--accent-soft)}
+.fx-chip.hl b{color:var(--accent-hi)}
+.fx-zone{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.5dvh,14px);overflow:hidden}
+.fx-zone #focus-rest:not(:empty)+.fx-idle{display:none}
+.fx-set{display:flex;flex-direction:column;align-items:center;gap:2px}
+.fx-set b{font-family:var(--f-serif);font-weight:500;font-size:clamp(56px,11dvh,104px);line-height:1}
+.fx-set b small{font-size:.38em;color:var(--dim);font-weight:400;margin-left:4px}
+.fx-zone .frest{background:transparent;padding:0;margin:0;gap:clamp(6px,1.2dvh,12px);width:100%}
+.fx-zone .frest .dial,.fx-zone .frest .dial svg{width:clamp(100px,19dvh,190px);height:clamp(100px,19dvh,190px)}
+.fx-zone .frest .dial .tm{font-size:clamp(32px,6dvh,54px)}
+.fx-zone .frest .nx{font-size:13px;color:var(--muted)}
+.fx-zone .frest .acts{width:100%;max-width:360px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.fx-zone .frest .acts button{background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:10px 0;font-weight:700;font-size:12px;letter-spacing:.06em}
+.fx-zone .f-dots{flex:none}
+.fx-ctl{flex:none;display:flex;flex-direction:column;gap:clamp(6px,1.2dvh,10px)}
+.fx-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border-radius:18px;padding:clamp(6px,1dvh,10px) 10px clamp(6px,1dvh,10px) 16px}
+.fx-row .label{display:flex;flex-direction:column;gap:3px}
+.fx-row .label em{font-style:normal;font-size:11px;letter-spacing:.02em;text-transform:none;color:var(--dim)}
+.fx-st{display:flex;align-items:center;gap:4px}
+.fx-st button{width:clamp(46px,6.6dvh,56px);height:clamp(46px,6.6dvh,56px);border-radius:50%;background:var(--raise);font-size:26px;color:var(--fg);flex:none}
+.fx-st button:active{background:var(--accent);color:#fff}
+.fx-st b,.fx-st input{width:clamp(96px,30vw,132px);text-align:center;font-family:var(--f-serif);font-weight:600;font-size:clamp(30px,5dvh,42px);line-height:1;border:0;background:transparent;color:var(--fg);padding:0;-moz-appearance:textfield}
+.fx-st input::-webkit-outer-spin-button,.fx-st input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.fx-bot{flex:none}
+.fx-go{width:100%;min-height:clamp(56px,8dvh,68px);font-size:15px}
+.fx-zone .frest .why,.fx-zone .frest .more{display:none}
+@media (max-height:700px){.fx-zone .frest .lb{display:none}.fx-chips{margin-top:6px}.fx-name{font-size:19px}}
+.fsheet>.row{flex-wrap:nowrap}
+.fsheet>.row h3{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fsheet .warm{margin-top:0;background:transparent;padding:0}
+.fsheet .f-opts{padding:0 4px;background:transparent}
+.fsheet .swap{margin:0;background:transparent;padding:0;border:0}
+.fsheet .swap>.h{display:none}
 /* Appli autonome : zones sûres de l'iPhone, pas de rebond ni de zoom */
 html{-webkit-text-size-adjust:100%}
 body{margin:0;overscroll-behavior-y:none}
@@ -1190,6 +1242,10 @@ function render() {
   else m.innerHTML = vueProfil();
   hydrate();
   dessinerVisuels();
+  const imm = V.tab === "seance" && !!draft && draft.vue !== "liste";
+  document.body.classList.toggle("immersif", imm);
+  const sh = $("#sheet"), fs = imm ? sheetFocus() : "";
+  if (fs) { sh.innerHTML = fs; sh.dataset.fs = "1"; } else if (sh.dataset.fs) { sh.innerHTML = ""; delete sh.dataset.fs; }
   if (repos) majRepos();
 }
 
@@ -1301,62 +1357,97 @@ function vueFocus() {
   const posMain = main.indexOf(d), n = main.length;
   const si = d.series.findIndex(s => !s.fait);
   const pdc = x.type === "poids_corps";
-  const nbFaits = main.reduce((a, e) => a + e.series.filter(s => s.fait).length, 0), nbTot = main.reduce((a, e) => a + e.series.length, 0);
   const toutFini = main.every(e => e.series.every(s => s.fait));
   const pl = x.type === "barre" ? plaques(Number(d.charge) || 0, etat.profil.barre) : [];
   const repsCour = si >= 0 ? (d.series[si].reps !== "" ? Number(d.series[si].reps) : d.cible) : 0;
   const prog = draft.exos.map((z, i) => { const xz = etat.exos[z.exoId]; const fini = z.series.length && z.series.every(s => s.fait); return `<button data-goto="${i}" class="${i === ei ? "cur" : fini ? "done" : ""} ${xz && xz.opt ? "opt" : ""}" aria-label="${esc(xz ? xz.nom : "")}"></button>`; }).join("");
-  const num = x.opt ? "+" : String(posMain + 1).padStart(2, "0");
   const suivant = prochainExo(ei);
-  return `
-  <div class="f-top">
-    <button class="lk" data-act="vue-liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Vue d'ensemble</button>
-    <span class="label num" id="elapsed">${tempsSeance()}</span>
-  </div>
-  <div class="f-prog">${prog}</div>
-  <div class="f-hero">
-    <div class="f-ghost" aria-hidden="true">${num}</div>
-    <div class="label">${x.opt ? "Optionnel" : d.exoId === draft.focus ? '<span style="color:var(--accent-hi)">Focus</span>' : `${posMain + 1} / ${n}`} · ${esc(x.groupe)}${x.calib ? ' · <span class="cal-tag">charge à régler</span>' : ""}</div>
-    <h1 class="f-name">${esc(x.nom)}</h1>
-    ${vu("fmeta") ? `<div class="f-meta">Fourchette ${x.repsMin}–${x.repsMax} reps · repos ${Math.round(x.repos / 60 * 10) / 10} min${x.calib ? " · charge estimée : mets celle que tu utilises vraiment, elle servira de base" : ""}</div>` : ""}
-  </div>
-  ${V.swap ? panneauRemplacer(ei, x) : ""}
-  ${si === 0 && !d.series.some(z => z.fait) ? blocEchauffement(ei, d, x) : ""}
-  <div id="focus-rest"></div>
-  ${si >= 0 ? `
-  <div class="f-card">
-    <div class="f-set"><span class="label">Série</span><b>${si + 1} <span class="muted">sur ${d.series.length}</span></b></div>
-    ${ligneDerniere(x, si)}
-    <div class="f-rep"><button data-freps="-1" aria-label="Une rep de moins">−</button><div class="f-big num">${repsCour}<small>reps · objectif ${d.cible}</small></div><button data-freps="1" aria-label="Une rep de plus">+</button></div>
-    <div class="f-load"><span class="at">à</span><div class="stepper"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><span class="u">${pdc ? "kg lest" : parMain(x) ? "kg/main" : "kg"}</span><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div></div>
-    ${x.type === "barre" && vu("disques") ? `<div class="plates" style="justify-content:center">${pl.length ? "Par côté" : "Barre seule"} ${pl.map(p => `<span class="plate k${p >= 2.5 && p < 5 ? 2 : p < 2.5 ? 1 : p}">${nf(p)}</span>`).join("")}</div>` : ""}
-    <button class="btn primary big" data-act="f-ok">Série validée</button>
-    ${bullesSeries(ei, d, si, x)}
-  </div>
-` : `
-  <div class="f-card f-done">
-    <div class="label">Exercice terminé</div>
-    ${bullesSeries(ei, d, -1, x)}
-    ${suivant >= 0 ? `<button class="btn primary big" data-goto="${suivant}">${etat.exos[draft.exos[suivant].exoId]?.opt && !x.opt ? "Bloc optionnel" : "Exercice suivant"}</button>` : ""}
-  </div>`}
-  ${toutFini ? `<div style="margin-top:18px"><button class="btn primary big" data-act="finish">Terminer la séance</button></div>` : ""}
-  ${plus("fopt", "Options", "Fermer", "c")}
-  ${vu("fopt") ? `<div class="f-opts">
+  const [nom, sous] = x.nom.split(" · ");
+  const warm = si === 0 && !d.series.some(z => z.fait) ? blocEchauffement(ei, d, x) : "";
+  const last = derniereFoisExo(x.id);
+  let lastTxt = "";
+  if (last && si >= 0) { const k = Math.min(si, last.reps.length - 1), kg = last.kgs[k]; lastTxt = `${last.reps[k]} × ${pdc ? (kg ? "+" + nf(kg) : "PDC") : nf(kg)}${pdc && !kg ? "" : uKg(x)}`; }
+  const chips = [
+    lastTxt ? `<span class="fx-chip"><i>Dernière fois</i><b class="num">${lastTxt}</b></span>` : "",
+    warm ? `<button class="fx-chip hl" data-fsheet="warm"><i>Échauffement</i><b>Voir</b></button>` : "",
+    draft.deload ? `<span class="fx-chip"><i>Semaine</i><b>Décharge</b></span>` : "",
+    x.calib && si >= 0 ? `<span class="fx-chip hl"><i>Charge</i><b>à régler</b></span>` : ""
+  ].filter(Boolean).join("");
+  const dots = `<div class="f-dots">${d.series.map((s, i) => s.fait
+    ? `<button class="f-dot ok" data-fedit="${ei}-${i}" aria-label="Corriger la série ${i + 1}">${esc(s.reps)}<small>${pdc && !(s.kg ?? d.charge) ? "PDC" : (pdc ? "+" : "") + nf(s.kg ?? d.charge)}</small></button>`
+    : `<span class="f-dot ${i === si ? "cur" : ""}">${i + 1}</span>`).join("")}</div>`;
+  const bas = si >= 0
+    ? `<button class="btn primary big fx-go" data-act="f-ok">Série validée</button>`
+    : toutFini ? `<button class="btn primary big fx-go" data-act="finish">Terminer la séance</button>`
+    : suivant >= 0 ? `<button class="btn primary big fx-go" data-goto="${suivant}">${etat.exos[draft.exos[suivant].exoId]?.opt && !x.opt ? "Bloc optionnel" : "Exercice suivant"}</button>` : "";
+  return `<div class="fx">
+  <div class="fx-in">
+    <div class="fx-top">
+      <button class="fx-ic" data-act="vue-liste" aria-label="Vue d'ensemble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+      <div class="fx-mid"><div class="f-prog">${prog}</div><span class="num" id="elapsed">${tempsSeance()}</span></div>
+      <button class="fx-ic" data-det="fopt" aria-label="Options de l'exercice"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+    </div>
+    <div class="fx-head">
+      <div class="label">${x.opt ? "Optionnel" : d.exoId === draft.focus ? '<span style="color:var(--accent-hi)">Focus</span>' : `${posMain + 1} / ${n}`} · ${esc(x.groupe)}${sous ? ` · <span style="color:var(--accent-hi)">${esc(sous)}</span>` : ""}</div>
+      <h1 class="fx-name">${esc(nom)}</h1>
+      ${vu("fmeta") ? `<div class="f-meta">Fourchette ${x.repsMin}–${x.repsMax} reps · repos ${Math.round(x.repos / 60 * 10) / 10} min</div>` : ""}
+      ${chips ? `<div class="fx-chips">${chips}</div>` : ""}
+    </div>
+    <div class="fx-zone">
+      <div id="focus-rest"></div>
+      <div class="fx-idle">${si >= 0
+        ? `<div class="fx-set"><span class="label">Série</span><b class="num">${si + 1}<small>/${d.series.length}</small></b></div>`
+        : `<div class="fx-set"><span class="label">${toutFini ? "Séance terminée" : "Exercice terminé"}</span><b>${toutFini ? "Bravo" : "OK"}</b></div>`}</div>
+      ${dots}
+    </div>
+    ${si >= 0 ? `<div class="fx-ctl">
+      <div class="fx-row"><span class="label">Reps <em>obj. ${d.cible}</em></span><div class="fx-st"><button data-freps="-1" aria-label="Une rep de moins">−</button><b class="num">${repsCour}</b><button data-freps="1" aria-label="Une rep de plus">+</button></div></div>
+      <div class="fx-row"><span class="label">${pdc ? "Lest" : parMain(x) ? "Kg / main" : "Charge"}${x.type === "barre" && vu("disques") ? `<em>${pl.length ? pl.map(nf).join("+") + " /côté" : "barre seule"}</em>` : ""}</span><div class="fx-st"><button data-step="${ei}" data-d="-1" aria-label="Moins lourd">−</button><input id="ch-${ei}" class="num" data-charge="${ei}" inputmode="decimal" value="${nf(Number(d.charge) || 0)}" aria-label="Charge en kg"><button data-step="${ei}" data-d="1" aria-label="Plus lourd">+</button></div></div>
+    </div>` : ""}
+    <div class="fx-bot">${bas}</div>
+  </div></div>`;
+}
+function sheetFocus() {
+  if (!draft || V.tab !== "seance" || draft.vue === "liste") return "";
+  const ei = draft.cur, d = draft.exos[ei], x = d && etat.exos[d.exoId]; if (!x) return "";
+  const si = d.series.findIndex(s => !s.fait);
+  const toutFini = draft.exos.filter(z => !etat.exos[z.exoId]?.opt).every(e => e.series.every(s => s.fait));
+  const cadre = (titre, corps) => `<div class="sheet-bg" data-close data-fs><div class="sheet fsheet"><div class="row" style="justify-content:space-between"><h3>${titre}</h3><button class="icn" data-close aria-label="Fermer">${I.x}</button></div>${corps}</div></div>`;
+  if (V.swap) return cadre("Remplacer", panneauRemplacer(ei, x));
+  if (V.fe && V.fe.ei === ei) { const b = bullesSeries(ei, d, si, x); const k = b.indexOf('<div class="fedit">'); return cadre("Corriger", k >= 0 ? b.slice(k) : ""); }
+  if (V.fsheet === "warm") { const w = blocEchauffement(ei, d, x); if (w) return cadre("Échauffement", w); V.fsheet = null; }
+  if (vu("fopt")) return cadre(esc(x.nom.split(" · ")[0]), `<div class="f-opts">
     <button data-act="f-swap">Remplacer l'exercice<span>machine prise, autre variante</span></button>
     ${draft.exos.length > 1 ? (V.fdel ? `<div class="fdel"><div style="font-size:14px">Retirer <b>${esc(x.nom)}</b> de la séance ?${d.series.some(z => z.fait) ? `<div class="muted" style="font-size:12px;margin-top:4px">Les séries déjà faites restent enregistrées.</div>` : ""}</div>
       <label class="keep" for="fdelProg"><input id="fdelProg" type="checkbox"> Aussi de mon programme</label>
       <div class="row"><button class="btn sm danger" data-act="f-del-ok">Retirer</button><button class="btn sm" data-act="f-del-no">Annuler</button></div></div>`
       : `<button data-act="f-del">Retirer l'exercice<span>pas envie aujourd'hui</span></button>`) : ""}
-    <button data-det="fmeta">Infos de l'exercice<span>${vu("fmeta") ? "affichées" : "masquées"}</span></button>
-    ${x.type === "barre" ? `<button data-det="disques">Disques à charger<span>${vu("disques") ? "affichés" : "masqués"}</span></button>` : ""}
     ${si >= 0 ? `<button data-addset="${ei}">Ajouter une série<span>${d.series.length} → ${d.series.length + 1}</span></button>` : ""}
-    ${si >= 0 && d.series.length > 1 && d.series.filter(z => !z.fait).length > 0 ? `<button data-delset="${ei}">Retirer une série<span>${d.series.length} → ${d.series.length - 1}</span></button>` : ""}
+    ${si >= 0 && d.series.length > 1 ? `<button data-delset="${ei}">Retirer une série<span>${d.series.length} → ${d.series.length - 1}</span></button>` : ""}
     ${ei > 0 ? `<button data-fnav="-1">Exercice précédent<span></span></button>` : ""}
     ${ei < draft.exos.length - 1 ? `<button data-fnav="1">Exercice suivant<span></span></button>` : ""}
+    <button data-det="fmeta">Infos de l'exercice<span>${vu("fmeta") ? "affichées" : "masquées"}</span></button>
+    ${x.type === "barre" ? `<button data-det="disques">Disques à charger<span>${vu("disques") ? "affichés" : "masqués"}</span></button>` : ""}
+    <button data-act="vue-liste">Vue d'ensemble<span>toute la séance</span></button>
     ${!toutFini ? `<button data-act="finish">Terminer maintenant<span>bilan et enregistrement</span></button>` : ""}
     ${V.confirmAbandon ? `<button class="dang" data-act="abandon-ok">Confirmer l'abandon<span>rien n'est enregistré</span></button><button data-act="abandon-no">Annuler<span></span></button>` : `<button class="dang" data-act="abandon">Abandonner la séance<span></span></button>`}
-  </div>` : ""}`;
+  </div>`);
+  return "";
 }
+/* écran de série plein écran : feuilles d'options, fermeture */
+V.det.fopt = false; V.fsheet = null;
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button, [data-close]"); if (!b) return;
+  const inFs = b.closest("[data-fs]");
+  if (inFs && b.dataset.close !== undefined && (ev.target === b || b.tagName === "BUTTON")) { V.swap = false; V.fe = null; V.fsheet = null; V.fdel = false; V.confirmAbandon = false; V.det.fopt = false; ls.set(K_DET, V.det); return; }
+  if (b.dataset.fsheet) { V.fsheet = b.dataset.fsheet; render(); return; }
+  if (inFs && b.closest(".f-opts")) {
+    const a = b.dataset.act;
+    if (!["f-del", "abandon", "abandon-no", "f-del-no", "f-swap"].includes(a) && !b.dataset.det) { V.det.fopt = false; ls.set(K_DET, V.det); }
+    if (a === "f-swap") { V.det.fopt = false; ls.set(K_DET, V.det); }
+  }
+  if (b.dataset.warmok) V.fsheet = null;
+}, true);
 function tempsSeance() {
   if (!draft) return "";
   const ecoule = Math.max(0, Math.round((Date.now() - draft.debut) / 60000));
